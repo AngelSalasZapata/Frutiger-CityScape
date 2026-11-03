@@ -1,0 +1,7 @@
+dist
+dist-electron
+release
+coverage
+node_modules
+public/assets
+package-lock.json

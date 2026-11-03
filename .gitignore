@@ -1,0 +1,33 @@
+# Dependencias
+node_modules/
+
+# Build del renderer y del proceso principal de Electron
+dist/
+dist-electron/
+
+# Paquetes generados por electron-builder
+release/
+
+# Cobertura de pruebas
+coverage/
+
+# Reportes de pruebas
+test-results/
+playwright-report/
+
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*

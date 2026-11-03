@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "default": "small",
+  "presets": [
+    {
+      "id": "small",
+      "label": "Pequeño",
+      "size": 32,
+      "chunkSize": 16
+    },
+    {
+      "id": "medium",
+      "label": "Mediano",
+      "size": 64,
+      "chunkSize": 16
+    },
+    {
+      "id": "large",
+      "label": "Grande",
+      "size": 128,
+      "chunkSize": 16
+    }
+  ]
+}

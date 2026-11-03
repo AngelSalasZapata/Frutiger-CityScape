@@ -1,0 +1,27 @@
+{
+  "id": "aero_classic",
+  "name": "Aero Classic",
+  "sky": {
+    "top": "#1f7fe8",
+    "horizon": "#c9f0ff",
+    "sun": "#fff4c2",
+    "sunDirection": [0.45, 0.55, 0.35]
+  },
+  "fog": {
+    "color": "#cdeaff",
+    "near": 70,
+    "far": 260
+  },
+  "ground": {
+    "grass": "#79d957",
+    "grid": "#ffffff",
+    "gridCenter": "#d8f6ff"
+  },
+  "lighting": {
+    "hemisphereSky": "#d9f3ff",
+    "hemisphereGround": "#6abf5a",
+    "hemisphereIntensity": 1.15,
+    "sun": "#fff3d1",
+    "sunIntensity": 2.4
+  }
+}
