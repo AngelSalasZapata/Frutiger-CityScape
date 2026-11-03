@@ -1,21 +1,60 @@
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 
 import type { ThemeDefinition } from '@/render/theme'
+import { disposeObject3D } from '@/utils/dispose'
 
+import type { ChunkGrid } from './ChunkGrid'
 import type { WorldPreset } from './WorldConfig'
 
 /**
- * Terreno plano del diorama con grilla lógica superpuesta.
- * En la Fase 2 se sustituirá por la isla con agua y chunks.
+ * Isla del diorama: una base de plástico con borde de arena, la superficie de
+ * césped y dos retículas superpuestas (celdas y chunks). El agua se construye
+ * aparte en `Water` para mantener este archivo enfocado en la tierra.
  */
 export class Terrain {
   readonly object = new THREE.Group()
 
   private readonly grid: THREE.GridHelper
+  private readonly chunkOverlay: THREE.GridHelper
 
-  constructor(preset: WorldPreset, theme: ThemeDefinition) {
+  constructor(preset: WorldPreset, theme: ThemeDefinition, chunkGrid: ChunkGrid) {
+    const size = preset.size
+    const baseHeight = 2.8
+    const shoreThickness = 0.3
+
+    const cliffMaterial = new THREE.MeshPhysicalMaterial({
+      color: theme.ground.cliff,
+      roughness: 0.42,
+      metalness: 0,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.3,
+    })
+
+    const base = new THREE.Mesh(
+      new RoundedBoxGeometry(size + 0.9, baseHeight, size + 0.9, 4, 0.6),
+      cliffMaterial,
+    )
+    base.name = 'terrain-base'
+    base.position.y = -baseHeight / 2
+    base.castShadow = true
+    base.receiveShadow = true
+
+    const shore = new THREE.Mesh(
+      new RoundedBoxGeometry(size + 1.4, shoreThickness, size + 1.4, 3, 0.45),
+      new THREE.MeshStandardMaterial({
+        color: theme.ground.shore,
+        roughness: 0.72,
+        metalness: 0,
+      }),
+    )
+    shore.name = 'terrain-shore'
+    shore.position.y = -shoreThickness / 2 + 0.01
+    shore.castShadow = true
+    shore.receiveShadow = true
+
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(preset.size, preset.size),
+      new THREE.PlaneGeometry(size, size),
       new THREE.MeshStandardMaterial({
         color: theme.ground.grass,
         roughness: 0.82,
@@ -24,28 +63,42 @@ export class Terrain {
     )
     ground.name = 'terrain-ground'
     ground.rotation.x = -Math.PI / 2
+    ground.position.y = 0.03
     ground.receiveShadow = true
 
-    this.grid = new THREE.GridHelper(
-      preset.size,
-      preset.size,
-      theme.ground.gridCenter,
-      theme.ground.grid,
-    )
+    this.grid = new THREE.GridHelper(size, size, theme.ground.gridCenter, theme.ground.grid)
     this.grid.name = 'terrain-grid'
-    this.grid.position.y = 0.02
+    this.grid.position.y = 0.05
 
     const gridMaterial = this.grid.material as THREE.LineBasicMaterial
     gridMaterial.transparent = true
-    gridMaterial.opacity = 0.22
+    gridMaterial.opacity = size <= 32 ? 0.22 : size <= 64 ? 0.15 : 0.1
     gridMaterial.depthWrite = false
 
+    this.chunkOverlay = new THREE.GridHelper(
+      size,
+      chunkGrid.chunksPerAxis,
+      theme.ground.chunk,
+      theme.ground.chunk,
+    )
+    this.chunkOverlay.name = 'terrain-chunks'
+    this.chunkOverlay.position.y = 0.065
+
+    const chunkMaterial = this.chunkOverlay.material as THREE.LineBasicMaterial
+    chunkMaterial.transparent = true
+    chunkMaterial.opacity = 0.5
+    chunkMaterial.depthWrite = false
+
     this.object.name = 'terrain'
-    this.object.add(ground, this.grid)
+    this.object.add(base, shore, ground, this.grid, this.chunkOverlay)
   }
 
   get gridVisible(): boolean {
     return this.grid.visible
+  }
+
+  get chunksVisible(): boolean {
+    return this.chunkOverlay.visible
   }
 
   toggleGrid(): boolean {
@@ -53,16 +106,12 @@ export class Terrain {
     return this.grid.visible
   }
 
+  toggleChunks(): boolean {
+    this.chunkOverlay.visible = !this.chunkOverlay.visible
+    return this.chunkOverlay.visible
+  }
+
   dispose(): void {
-    this.object.traverse((child) => {
-      if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
-        child.geometry.dispose()
-        if (Array.isArray(child.material)) {
-          child.material.forEach((material) => material.dispose())
-        } else {
-          child.material.dispose()
-        }
-      }
-    })
+    disposeObject3D(this.object)
   }
 }

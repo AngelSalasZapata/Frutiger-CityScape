@@ -26,3 +26,13 @@ export function resolveWorldPreset(id: string): WorldPreset {
 }
 
 export const DEFAULT_WORLD_PRESET = resolveWorldPreset(presetFile.default)
+
+/**
+ * Factor de escala respecto al diorama pequeño. Se usa para adaptar niebla,
+ * luces y cámara a presets más grandes sin valores mágicos repartidos.
+ */
+export const REFERENCE_WORLD_SIZE = 32
+
+export function worldScale(size: number): number {
+  return Math.max(size / REFERENCE_WORLD_SIZE, 1)
+}

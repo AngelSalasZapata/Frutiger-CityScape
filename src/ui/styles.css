@@ -150,6 +150,98 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
+.hud__world {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(350px, 70vw);
+  padding: 15px 16px 16px;
+  pointer-events: auto;
+}
+
+.hud__world-meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--aero-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud__presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hud__preset {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px 10px 10px;
+  border: 1px solid rgba(15, 127, 212, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(214, 243, 255, 0.62) 60%,
+    rgba(255, 255, 255, 0.78)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 3px 10px rgba(8, 54, 92, 0.12);
+  color: var(--aero-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.hud__preset:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 127, 212, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 6px 14px rgba(8, 54, 92, 0.18);
+}
+
+.hud__preset:focus-visible {
+  outline: 2px solid var(--aero-accent);
+  outline-offset: 2px;
+}
+
+.hud__preset.is-active,
+.hud__preset[aria-pressed='true'] {
+  border-color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(165deg, #8bdeff 0%, #2fb7ff 52%, #0f7fd4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 7px 16px rgba(9, 92, 155, 0.32);
+  color: #ffffff;
+}
+
+.hud__preset-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hud__preset-size {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
+  font-variant-numeric: tabular-nums;
+}
+
 .hud__hints {
   grid-column: 1 / -1;
   grid-row: 3;
@@ -193,16 +285,25 @@ kbd {
 @media (max-width: 720px) {
   .hud {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 12px;
+  }
+
+  .hud__world {
+    grid-column: 1;
+    grid-row: 2;
+    width: min(350px, 100%);
   }
 
   .hud__stats {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     justify-self: end;
-    align-self: start;
+    align-self: end;
   }
 
   .hud__hints {
+    grid-row: 4;
     font-size: 10px;
   }
 }

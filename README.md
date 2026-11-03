@@ -4,8 +4,8 @@ Sandbox 3D de ciudades en miniatura con estética **Frutiger Aero**. El jugador 
 del diorama, coloca edificios, props y vehículos con el mouse, interactúa con física real y observa
 mini NPCs recorrer la ciudad.
 
-> Estado actual: **Fase 1 — esqueleto técnico** completada. Todavía no hay herramientas de
-> construcción, guardado ni NPCs (ver [roadmap](#roadmap)).
+> Estado actual: **Fase 2 — selector de tamaño, grilla, chunks y diorama con agua** completada.
+> Todavía no hay herramientas de construcción, física ni NPCs (ver [roadmap](#roadmap)).
 
 ## Stack
 
@@ -42,12 +42,31 @@ ventana de escritorio y, más adelante, el empaquetado en instaladores.
 | `npm run format`      | Prettier sobre todo el repo.                                       |
 | `npm run test`        | Pruebas unitarias con Vitest.                                      |
 
+## Mundo y tamaños
+
+El diorama se genera a partir de los presets de `data/worlds/presets.json`. La grilla lógica está
+centrada en el origen y cada celda mide una unidad. Los chunks son regiones de 16 × 16 celdas que
+en fases posteriores permitirán renderizado y guardado por región.
+
+| Preset   | Tamaño    | Celdas | Chunks |
+| -------- | --------- | ------ | ------ |
+| `small`  | 32 × 32   | 1 024  | 4      |
+| `medium` | 64 × 64   | 4 096  | 16     |
+| `large`  | 128 × 128 | 16 384 | 64     |
+
+Al cambiar de tamaño se reconstruye el mundo completo y se reajustan cámara, niebla y la frustum
+de sombras. El agua usa un shader procedural con oleaje, espuma en la costa y desvanecimiento por
+distancia, sin depender todavía de texturas ni postproceso. Detalles en
+[`docs/arquitectura-mundo.md`](docs/arquitectura-mundo.md).
+
 ## Controles actuales
 
 - **Clic derecho + arrastrar**: rotar la cámara.
 - **Rueda**: zoom.
 - **Clic central + arrastrar**: desplazar.
-- **G**: mostrar u ocultar la grilla del terreno.
+- **1 / 2 / 3**: cambiar el diorama a pequeño, mediano o grande.
+- **G**: mostrar u ocultar la grilla de celdas.
+- **C**: mostrar u ocultar los límites de chunks.
 - **F12**: DevTools (solo en la app de escritorio).
 
 ## Estructura
@@ -82,7 +101,7 @@ tests/                Unitarias y e2e
 - [x] **Fase 0** — Documentación y decisiones base.
 - [x] **Fase 1** — Vite + TypeScript estricto + Electron, escena Three.js, cámara orbital, loop
       con timestep fijo, HUD y CI.
-- [ ] **Fase 2** — Selector de tamaño de ciudad, grilla lógica, chunks y diorama con agua.
+- [x] **Fase 2** — Selector de tamaño de ciudad, grilla lógica, chunks y diorama con agua.
 - [ ] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas y undo/redo.
 - [ ] **Fase 4** — Estética Aero v1, postproceso, partículas y tema Aero Classic completo.
 - [ ] **Fase 5** — Física Rapier, agarre y lanzamiento.

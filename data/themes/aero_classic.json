@@ -15,7 +15,16 @@
   "ground": {
     "grass": "#79d957",
     "grid": "#ffffff",
-    "gridCenter": "#d8f6ff"
+    "gridCenter": "#d8f6ff",
+    "chunk": "#1aa7e8",
+    "shore": "#f7e8b8",
+    "cliff": "#9fdfe8"
+  },
+  "water": {
+    "deep": "#0a6ea9",
+    "shallow": "#45d6e8",
+    "sky": "#c9f7ff",
+    "foam": "#f4ffff"
   },
   "lighting": {
     "hemisphereSky": "#d9f3ff",

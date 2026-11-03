@@ -18,6 +18,15 @@ export interface ThemeDefinition {
     grass: string
     grid: string
     gridCenter: string
+    chunk: string
+    shore: string
+    cliff: string
+  }
+  water: {
+    deep: string
+    shallow: string
+    sky: string
+    foam: string
   }
   lighting: {
     hemisphereSky: string

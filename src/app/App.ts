@@ -10,11 +10,23 @@ import { SkyDome } from '@/render/SkyDome'
 import { AERO_CLASSIC_THEME } from '@/render/theme'
 import { Hud } from '@/ui/Hud'
 import { disposeObject3D } from '@/utils/dispose'
-import { DEFAULT_WORLD_PRESET } from '@/world/WorldConfig'
 import { PreviewStage } from '@/world/PreviewStage'
-import { Terrain } from '@/world/Terrain'
+import { World } from '@/world/World'
+import {
+  DEFAULT_WORLD_PRESET,
+  resolveWorldPreset,
+  worldScale,
+  WORLD_PRESETS,
+} from '@/world/WorldConfig'
+import type { WorldPreset } from '@/world/WorldConfig'
 
 import type { AppEvents } from './events'
+
+const KEYBOARD_PRESETS: Readonly<Record<string, string>> = {
+  '1': 'small',
+  '2': 'medium',
+  '3': 'large',
+}
 
 /**
  * Composición de la aplicación: render, mundo, UI y bucle. Mantiene el orden
@@ -23,36 +35,50 @@ import type { AppEvents } from './events'
 export class App {
   private readonly bus = new EventBus<AppEvents>()
   private readonly container: HTMLElement
+  private readonly theme = AERO_CLASSIC_THEME
   private readonly scene = new THREE.Scene()
   private readonly renderer: Renderer
   private readonly cameraRig: CameraRig
   private readonly sky: SkyDome
   private readonly lighting: Lighting
-  private readonly terrain: Terrain
   private readonly preview: PreviewStage
   private readonly hud: Hud
   private readonly loop: GameLoop
   private readonly resizeObserver: ResizeObserver
   private readonly environmentTexture: THREE.Texture
+  private readonly unsubscribePresetSelected: () => void
+
+  private world: World
+  private activePreset: WorldPreset
 
   constructor(container: HTMLElement) {
     this.container = container
 
-    const theme = AERO_CLASSIC_THEME
-
     this.renderer = new Renderer(container)
-    this.scene.fog = new THREE.Fog(theme.fog.color, theme.fog.near, theme.fog.far)
+    this.scene.fog = new THREE.Fog(this.theme.fog.color, this.theme.fog.near, this.theme.fog.far)
 
     this.cameraRig = new CameraRig(this.renderer.instance.domElement)
-    this.sky = new SkyDome(theme)
-    this.lighting = new Lighting(theme)
-    this.terrain = new Terrain(DEFAULT_WORLD_PRESET, theme)
+    this.sky = new SkyDome(this.theme)
+    this.lighting = new Lighting(this.theme)
     this.preview = new PreviewStage()
 
-    this.scene.add(this.sky.object, this.lighting.object, this.terrain.object, this.preview.object)
+    this.activePreset = DEFAULT_WORLD_PRESET
+    this.world = new World(this.activePreset, this.theme)
+
+    this.scene.add(this.sky.object, this.lighting.object, this.world.object, this.preview.object)
     this.environmentTexture = this.createEnvironment()
 
-    this.hud = new Hud(container, this.bus)
+    this.hud = new Hud(container, this.bus, {
+      presets: WORLD_PRESETS,
+      selectedPresetId: this.activePreset.id,
+    })
+
+    this.unsubscribePresetSelected = this.bus.on('worldPresetSelected', (event) => {
+      this.selectWorldPreset(event.id)
+    })
+
+    this.applyWorldMetrics(this.activePreset)
+    this.publishWorldChanged()
 
     this.loop = new GameLoop({
       fixedHz: 60,
@@ -76,6 +102,7 @@ export class App {
 
   dispose(): void {
     this.loop.stop()
+    this.unsubscribePresetSelected()
     this.resizeObserver.disconnect()
     this.renderer.instance.domElement.removeEventListener('contextmenu', this.preventContextMenu)
     window.removeEventListener('keydown', this.handleKeyDown)
@@ -87,7 +114,7 @@ export class App {
     this.scene.environment = null
     this.environmentTexture.dispose()
     this.sky.dispose()
-    this.terrain.dispose()
+    this.world.dispose()
     this.preview.dispose()
     this.lighting.dispose()
     this.cameraRig.dispose()
@@ -108,7 +135,44 @@ export class App {
     return texture
   }
 
+  private selectWorldPreset(id: string): void {
+    const preset = resolveWorldPreset(id)
+    if (preset.id === this.activePreset.id) return
+
+    this.scene.remove(this.world.object)
+    this.world.dispose()
+
+    this.world = new World(preset, this.theme)
+    this.activePreset = preset
+    this.scene.add(this.world.object)
+
+    this.applyWorldMetrics(preset)
+    this.publishWorldChanged()
+  }
+
+  /** Ajusta cámara, niebla y sombras al tamaño del diorama activo. */
+  private applyWorldMetrics(preset: WorldPreset): void {
+    const fog = this.scene.fog
+    if (fog instanceof THREE.Fog) {
+      const scale = worldScale(preset.size)
+      fog.near = this.theme.fog.near * scale
+      fog.far = this.theme.fog.far * scale
+    }
+
+    this.lighting.setWorldSize(preset.size)
+    this.cameraRig.frameWorld(preset.size)
+  }
+
+  private publishWorldChanged(): void {
+    this.bus.emit('worldChanged', {
+      preset: this.activePreset,
+      cells: this.activePreset.size * this.activePreset.size,
+      chunks: this.world.chunks.count,
+    })
+  }
+
   private fixedUpdate(dt: number): void {
+    this.world.update(dt)
     this.preview.update(dt)
   }
 
@@ -133,6 +197,7 @@ export class App {
 
     this.renderer.setSize(width, height)
     this.cameraRig.setAspect(width / height)
+    this.cameraRig.ensureWorldFits(this.activePreset.size)
   }
 
   private readonly preventContextMenu = (event: Event): void => {
@@ -142,8 +207,21 @@ export class App {
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
     if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
 
-    if (event.key.toLowerCase() === 'g') {
-      this.terrain.toggleGrid()
+    const key = event.key.toLowerCase()
+
+    if (key === 'g') {
+      this.world.toggleGrid()
+      return
+    }
+
+    if (key === 'c') {
+      this.world.toggleChunks()
+      return
+    }
+
+    const presetId = KEYBOARD_PRESETS[key]
+    if (presetId) {
+      this.bus.emit('worldPresetSelected', { id: presetId })
     }
   }
 

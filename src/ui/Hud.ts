@@ -1,5 +1,6 @@
-import type { AppEvents, FrameEvent } from '@/app/events'
+import type { AppEvents, FrameEvent, WorldChangedEvent } from '@/app/events'
 import type { EventBus } from '@/core/EventBus'
+import type { WorldPreset } from '@/world/WorldConfig'
 
 const HUD_TEMPLATE = `
   <div class="hud">
@@ -33,14 +34,29 @@ const HUD_TEMPLATE = `
       </div>
     </section>
 
+    <section class="hud__world glass-panel" aria-label="Tamaño del diorama">
+      <div>
+        <p class="hud__eyebrow">Diorama</p>
+        <p class="hud__world-meta" data-world-meta>—</p>
+      </div>
+      <div class="hud__presets" role="group" aria-label="Tamaño de la ciudad" data-presets></div>
+    </section>
+
     <div class="hud__hints glass-panel">
       <span><kbd>Clic derecho</kbd> rotar</span>
       <span><kbd>Rueda</kbd> zoom</span>
       <span><kbd>Clic central</kbd> desplazar</span>
+      <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tamaño</span>
       <span><kbd>G</kbd> grilla</span>
+      <span><kbd>C</kbd> chunks</span>
     </div>
   </div>
 `
+
+interface HudOptions {
+  presets: readonly WorldPreset[]
+  selectedPresetId: string
+}
 
 function query(root: ParentNode, selector: string): HTMLElement {
   const element = root.querySelector<HTMLElement>(selector)
@@ -55,20 +71,26 @@ function query(root: ParentNode, selector: string): HTMLElement {
  * conoce nada del renderer ni de la simulación.
  */
 export class Hud {
+  private readonly bus: EventBus<AppEvents>
   private readonly root: HTMLElement
+  private readonly presetsRoot: HTMLElement
+  private readonly worldMeta: HTMLElement
   private readonly fpsValue: HTMLElement
   private readonly frameValue: HTMLElement
   private readonly drawCallsValue: HTMLElement
   private readonly trianglesValue: HTMLElement
-  private readonly unsubscribe: () => void
+  private readonly presetButtons = new Map<string, HTMLButtonElement>()
+  private readonly unsubscribeFrame: () => void
+  private readonly unsubscribeWorldChanged: () => void
 
   private frames = 0
   private elapsed = 0
 
-  constructor(container: HTMLElement, bus: EventBus<AppEvents>) {
-    container.insertAdjacentHTML('beforeend', HUD_TEMPLATE)
-
-    this.root = query(container, '.hud')
+  constructor(container: HTMLElement, bus: EventBus<AppEvents>, options: HudOptions) {
+    this.bus = bus
+    this.root = this.createRoot(container)
+    this.presetsRoot = query(this.root, '[data-presets]')
+    this.worldMeta = query(this.root, '[data-world-meta]')
     this.fpsValue = query(this.root, '[data-fps]')
     this.frameValue = query(this.root, '[data-frame]')
     this.drawCallsValue = query(this.root, '[data-draw-calls]')
@@ -79,7 +101,92 @@ export class Hud {
       ? `Electron ${window.desktop.versions.electron}`
       : 'Navegador'
 
-    this.unsubscribe = bus.on('frame', this.handleFrame)
+    this.createPresetButtons(options.presets)
+
+    const initialPreset =
+      options.presets.find((preset) => preset.id === options.selectedPresetId) ?? options.presets[0]
+
+    if (!initialPreset) {
+      throw new Error('El HUD necesita al menos un preset de mundo')
+    }
+
+    this.applyWorldState(initialPreset, this.chunkCountFor(initialPreset))
+
+    this.presetsRoot.addEventListener('click', this.handlePresetClick)
+    this.unsubscribeFrame = this.bus.on('frame', this.handleFrame)
+    this.unsubscribeWorldChanged = this.bus.on('worldChanged', this.handleWorldChanged)
+  }
+
+  dispose(): void {
+    this.unsubscribeFrame()
+    this.unsubscribeWorldChanged()
+    this.presetsRoot.removeEventListener('click', this.handlePresetClick)
+    this.root.remove()
+  }
+
+  private createRoot(container: HTMLElement): HTMLElement {
+    container.insertAdjacentHTML('beforeend', HUD_TEMPLATE)
+    const root = container.querySelector<HTMLElement>('.hud')
+
+    if (!root) {
+      throw new Error('No se pudo montar el HUD')
+    }
+
+    return root
+  }
+
+  private createPresetButtons(presets: readonly WorldPreset[]): void {
+    for (const preset of presets) {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'hud__preset'
+      button.dataset.preset = preset.id
+      button.setAttribute('aria-pressed', 'false')
+
+      const label = document.createElement('span')
+      label.className = 'hud__preset-label'
+      label.textContent = preset.label
+
+      const size = document.createElement('span')
+      size.className = 'hud__preset-size'
+      size.textContent = `${preset.size} × ${preset.size}`
+
+      button.append(label, size)
+      this.presetsRoot.append(button)
+      this.presetButtons.set(preset.id, button)
+    }
+  }
+
+  private applyWorldState(preset: WorldPreset, chunks: number): void {
+    for (const [id, button] of this.presetButtons) {
+      const isActive = id === preset.id
+      button.classList.toggle('is-active', isActive)
+      button.setAttribute('aria-pressed', String(isActive))
+    }
+
+    this.worldMeta.textContent = `${preset.size} × ${preset.size} celdas · ${chunks} chunks`
+  }
+
+  private chunkCountFor(preset: WorldPreset): number {
+    const perAxis = preset.size / preset.chunkSize
+    return perAxis * perAxis
+  }
+
+  private readonly handlePresetClick = (event: MouseEvent): void => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+
+    const button = target.closest<HTMLButtonElement>('[data-preset]')
+    if (!button) return
+
+    const id = button.dataset.preset
+    if (id) {
+      this.bus.emit('worldPresetSelected', { id })
+    }
+  }
+
+  private readonly handleWorldChanged = (event: WorldChangedEvent): void => {
+    this.applyWorldState(event.preset, event.chunks)
   }
 
   private readonly handleFrame = (event: FrameEvent): void => {
@@ -95,10 +202,5 @@ export class Hud {
 
     this.frames = 0
     this.elapsed = 0
-  }
-
-  dispose(): void {
-    this.unsubscribe()
-    this.root.remove()
   }
 }
