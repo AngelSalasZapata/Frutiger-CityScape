@@ -92,8 +92,8 @@ en el diorama. Detalles en [`docs/arquitectura-mundo.md`](docs/arquitectura-mund
 
 El catálogo se reparte en `data/catalog/*.json` y se fusiona/valida en `src/building/Catalog.ts`.
 Cada item declara categoría, temas compatibles, huella en celdas, altura y modelo glTF (o un estilo
-de auto-tile). Al iniciar, `AssetLibrary` carga los 46 `.glb` y `City` reemplaza los materiales del
-GLB por las ranuras del tema activo (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`,
+de auto-tile). Al iniciar, `AssetLibrary` carga los 46 `.glb` y `City` aplica una paleta estable por
+objeto a las ranuras del GLB (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`,
 `metal`, `emissive`, `water`, `fabric`).
 
 - **Herramientas**: seleccionar, colocar, mover, rotar, duplicar y eliminar.
@@ -103,7 +103,9 @@ GLB por las ranuras del tema activo (`glass`, `solid`, `accent`, `roof`, `wood`,
 - **Caminos y cercas**: eligen automáticamente entre `dot`, `end`, `straight`, `corner`, `tee` y
   `cross` según la máscara de vecinos de 4 direcciones, y se reconectan al colocar o eliminar.
 - **Historial**: comandos reversibles (`PlaceCommand`, `RemoveCommand`, `MoveCommand`,
-  `RotateCommand`) agrupados por transacción, con `Ctrl+Z` / `Ctrl+Y`.
+  `RotateCommand` y color) agrupados por transacción, con `Ctrl+Z` / `Ctrl+Y`.
+- **Selección y color**: cada objeto recién colocado queda seleccionado; el recuadro fino marca su
+  huella y el selector del HUD recolorea todos sus elementos principales.
 
 Los modelos son procedurales y se regeneran con `npm run models` (`tools/model-*.mjs`). El catálogo
 actual tiene 36 items: 14 edificios, 6 elementos de naturaleza, 11 props, 3 vehículos, 1 camino y
@@ -118,6 +120,12 @@ Cada archivo define paleta, cielo, niebla, terreno, agua, luces, colores de cons
 matriz de materiales de las once ranuras. El HUD adapta sus paneles de vidrio al tema claro u
 oscuro, y el catálogo filtra los items exclusivos de cada estilo.
 
+El cambio de tema solo afecta el entorno (cielo, agua, iluminación, terreno y HUD): los objetos ya
+colocados conservan su apariencia y sus colores elegidos.
+
+El panel **Diorama** permite elegir terreno plano o con colinas, su cantidad y una altura baja,
+media o alta. El relieve es procedural y las construcciones se apoyan a la altura del terreno.
+
 ## Controles actuales
 
 - **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).
@@ -126,6 +134,7 @@ oscuro, y el catálogo filtra los items exclusivos de cada estilo.
 - **Rueda**: zoom.
 - **Clic central + arrastrar**: desplazar.
 - **R**: rotar el objeto seleccionado o la orientación de colocación.
+- **Selector de color**: con un objeto seleccionado, cambiar el color de su composición principal.
 - **D**: duplicar el objeto seleccionado en la celda libre más cercana.
 - **Supr / Backspace**: eliminar el objeto seleccionado.
 - **Esc**: cancelar el arrastre o la selección.

@@ -5,7 +5,38 @@ import type { ThemeDefinition } from '@/render/theme'
 import { disposeObject3D } from '@/utils/dispose'
 
 import type { ChunkGrid } from './ChunkGrid'
-import type { WorldPreset } from './WorldConfig'
+import { normalizeTerrain } from './WorldConfig'
+import type { TerrainSettings, WorldPreset } from './WorldConfig'
+
+interface Hill {
+  x: number
+  z: number
+  radius: number
+  height: number
+}
+
+function makeHills(size: number, settings: TerrainSettings): readonly Hill[] {
+  if (settings.mode !== 'hills') return []
+
+  const hills: Hill[] = []
+  const count = settings.density
+  const radius = Math.max(3.5, size / Math.max(3, Math.sqrt(count) * 2.2))
+  const height = 0.35 + settings.prominence * 2.85
+
+  for (let index = 0; index < count; index += 1) {
+    const seed = index + 1
+    const x = Math.sin(seed * 79.31) * 0.5 * size * 0.72
+    const z = Math.cos(seed * 43.17) * 0.5 * size * 0.72
+    hills.push({
+      x,
+      z,
+      radius: radius * (0.72 + ((seed * 37) % 29) / 70),
+      height: height * (0.65 + ((seed * 17) % 31) / 75),
+    })
+  }
+
+  return hills
+}
 
 /**
  * `GridHelper` guarda los colores en un atributo por vértice, no en el
@@ -44,9 +75,16 @@ export class Terrain {
   private readonly groundMaterial: THREE.MeshStandardMaterial
   private readonly grid: THREE.GridHelper
   private readonly chunkOverlay: THREE.GridHelper
+  private readonly hills: readonly Hill[]
 
-  constructor(preset: WorldPreset, theme: ThemeDefinition, chunkGrid: ChunkGrid) {
+  constructor(
+    preset: WorldPreset,
+    theme: ThemeDefinition,
+    chunkGrid: ChunkGrid,
+    terrainSettings: TerrainSettings,
+  ) {
     const size = preset.size
+    this.hills = makeHills(size, normalizeTerrain(terrainSettings))
     const baseHeight = 2.8
     const shoreThickness = 0.3
 
@@ -88,9 +126,17 @@ export class Terrain {
       metalness: 0,
     })
 
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(size, size), this.groundMaterial)
+    const groundGeometry = new THREE.PlaneGeometry(size, size, 64, 64)
+    groundGeometry.rotateX(-Math.PI / 2)
+    const positions = groundGeometry.getAttribute('position')
+    for (let index = 0; index < positions.count; index += 1) {
+      positions.setY(index, this.heightAt(positions.getX(index), positions.getZ(index)))
+    }
+    positions.needsUpdate = true
+    groundGeometry.computeVertexNormals()
+
+    const ground = new THREE.Mesh(groundGeometry, this.groundMaterial)
     ground.name = 'terrain-ground'
-    ground.rotation.x = -Math.PI / 2
     ground.position.y = 0.03
     ground.receiveShadow = true
 
@@ -119,6 +165,19 @@ export class Terrain {
 
     this.object.name = 'terrain'
     this.object.add(base, shore, ground, this.grid, this.chunkOverlay)
+  }
+
+  heightAt(x: number, z: number): number {
+    let elevation = 0
+    for (const hill of this.hills) {
+      const dx = x - hill.x
+      const dz = z - hill.z
+      const distance = Math.hypot(dx, dz)
+      if (distance >= hill.radius) continue
+      const falloff = 1 - distance / hill.radius
+      elevation += hill.height * falloff * falloff
+    }
+    return Number.isFinite(elevation) ? elevation : 0
   }
 
   get gridVisible(): boolean {

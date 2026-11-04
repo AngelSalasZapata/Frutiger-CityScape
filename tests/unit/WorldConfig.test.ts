@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_WORLD_PRESET, resolveWorldPreset, WORLD_PRESETS } from '@/world/WorldConfig'
+import {
+  DEFAULT_TERRAIN,
+  DEFAULT_WORLD_PRESET,
+  normalizeTerrain,
+  resolveWorldPreset,
+  WORLD_PRESETS,
+} from '@/world/WorldConfig'
 
 describe('WorldConfig', () => {
   it('expone los tres presets del documento', () => {
@@ -21,5 +27,14 @@ describe('WorldConfig', () => {
 
   it('falla con un preset desconocido', () => {
     expect(() => resolveWorldPreset('gigante')).toThrow(/no existe/)
+  })
+
+  it('normaliza los controles de relieve a valores seguros', () => {
+    expect(DEFAULT_TERRAIN.mode).toBe('flat')
+    expect(normalizeTerrain({ mode: 'hills', density: 99, prominence: 3 })).toEqual({
+      mode: 'hills',
+      density: 12,
+      prominence: 1,
+    })
   })
 })

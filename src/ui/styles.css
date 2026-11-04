@@ -6,8 +6,11 @@
   --aero-accent-strong: #0f7fd4;
   --aero-highlight: #b6e34b;
   --aero-panel: #f4faff;
+  --aero-button-fg: #092b43;
   --panel-radius: 20px;
-  font-family: 'Segoe UI Variable', 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
+  /* Frutiger es una fuente comercial: se usa si está instalada localmente,
+     con alternativas métricamente compatibles para no redistribuirla sin licencia. */
+  font-family: Frutiger, 'Frutiger LT Pro', 'Frutiger LT Std', 'Segoe UI', system-ui, sans-serif;
 }
 
 * {
@@ -306,7 +309,7 @@ body {
   min-width: 0;
   padding: 8px 9px 9px;
   border: 1px solid color-mix(in srgb, var(--aero-accent) 26%, white);
-  border-radius: 13px;
+  border-radius: 999px;
   background: linear-gradient(
     165deg,
     color-mix(in srgb, var(--aero-panel) 92%, white),
@@ -316,14 +319,14 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 3px 10px rgba(8, 54, 92, 0.12);
-  color: var(--aero-ink);
+  color: var(--aero-button-fg);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    border-color 120ms ease;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 300ms ease;
 }
 
 .hud__preset:hover {
@@ -332,6 +335,45 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 6px 14px rgba(8, 54, 92, 0.18);
+}
+
+.hud__preset::before,
+.hud__tool::before,
+.hud__category::before,
+.hud__item::before,
+.hud__action::before,
+.hud__history-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.38) 45%,
+    rgba(255, 255, 255, 0.05) 55%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.hud__preset::after,
+.hud__tool::after,
+.hud__category::after,
+.hud__item::after,
+.hud__action::after,
+.hud__history-button::after {
+  content: '';
+  position: absolute;
+  top: 5%;
+  left: 0.65em;
+  width: calc(100% - 1.3em);
+  height: 40%;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.06));
+  pointer-events: none;
 }
 
 .hud__preset:focus-visible,
@@ -416,18 +458,18 @@ body {
 .hud__history-button {
   appearance: none;
   border: 1px solid color-mix(in srgb, var(--aero-accent) 28%, white);
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--aero-panel) 92%, white),
-    color-mix(in srgb, var(--aero-accent) 12%, transparent)
-  );
-  color: var(--aero-ink);
+  background:
+    radial-gradient(farthest-corner at bottom center, rgba(255, 255, 255, 0.7), transparent),
+    linear-gradient(to bottom, var(--aero-accent-strong), var(--aero-accent));
+  color: var(--aero-button-fg);
   font: inherit;
   cursor: pointer;
-  transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    transform 120ms ease;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.32);
+  text-shadow: 0 2px 0.5em rgba(0, 0, 0, 0.2);
+  transition: all 300ms ease;
 }
 
 .hud__tool {
@@ -446,6 +488,16 @@ body {
   transform: translateY(-1px);
 }
 
+.hud__tool:active,
+.hud__category:active,
+.hud__item:active,
+.hud__action:active,
+.hud__history-button:active,
+.hud__preset:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.38);
+}
+
 .hud__tool.is-active,
 .hud__tool[aria-pressed='true'] {
   border-color: color-mix(in srgb, white 65%, transparent);
@@ -455,7 +507,7 @@ body {
     var(--aero-accent) 55%,
     var(--aero-accent-strong)
   );
-  color: #ffffff;
+  color: var(--aero-button-fg);
 }
 
 .hud__categories {
@@ -507,7 +559,7 @@ body {
   gap: 2px;
   min-width: 0;
   padding: 7px 8px 8px;
-  border-radius: 11px;
+  border-radius: 999px;
   text-align: left;
 }
 
@@ -555,7 +607,7 @@ body {
   justify-content: space-between;
   gap: 6px;
   padding: 7px 9px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 10.5px;
   font-weight: 700;
 }
@@ -572,7 +624,7 @@ body {
   justify-content: space-between;
   gap: 6px;
   padding: 8px 9px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 10.5px;
   font-weight: 700;
 }
@@ -594,6 +646,68 @@ body {
   color: var(--aero-ink);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.hud__color-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--aero-accent) 12%, transparent);
+  color: var(--aero-ink);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.hud__color-control input {
+  width: 32px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--aero-accent) 45%, white);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hud__color-control input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.hud__terrain {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 7px 8px;
+  padding-top: 4px;
+  color: var(--aero-ink);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.hud__terrain-label {
+  color: var(--aero-ink-soft);
+}
+.hud__terrain-mode {
+  grid-column: 2;
+  padding: 6px 26px 6px 9px;
+  font-size: 11px;
+}
+.hud__range-label {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  color: var(--aero-ink-soft);
+}
+.hud__range-label input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--aero-accent-strong);
+}
+.hud__range-label output {
+  color: var(--aero-ink);
 }
 
 .hud__hints {

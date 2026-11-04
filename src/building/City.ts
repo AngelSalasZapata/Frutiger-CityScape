@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 
+import { DEFAULT_THEME } from '@/render/theme'
 import type { ThemeDefinition } from '@/render/theme'
 import { ThemeMaterialLibrary } from '@/render/ThemeMaterials'
 import type { World } from '@/world/World'
@@ -40,6 +41,8 @@ export interface PlacementRecord {
   readonly itemId: string
   readonly anchor: GridCell
   readonly rotation: Rotation
+  /** Color elegido para la composición principal del objeto. */
+  readonly color?: string
 }
 
 export interface PlacementState {
@@ -104,13 +107,14 @@ export class City {
   private nextId = 1
 
   constructor(
-    world: World,
+    private world: World,
     private theme: ThemeDefinition,
     private readonly library: AssetLibrary,
   ) {
     this.grid = world.grid
     this.occupancy = new OccupancyMap(this.grid)
-    this.materials = new ThemeMaterialLibrary(theme)
+    // Los objetos mantienen su paleta al cambiar el tema del entorno.
+    this.materials = new ThemeMaterialLibrary(DEFAULT_THEME)
 
     this.object.name = 'city'
     this.instancesObject.name = 'city-instances'
@@ -170,6 +174,16 @@ export class City {
     return this.grid.contains(cell) && this.occupancy.isFree(cell, ignoreId)
   }
 
+  groundHeightAt(cell: GridCell): number {
+    const point = this.grid.cellToWorld(cell)
+    return this.world.heightAt(point.x, point.z)
+  }
+
+  groundHeightFor(placement: FootprintPlacement): number {
+    const half = this.grid.halfSize
+    return this.world.heightAt(placement.centerX + 0.5 - half, placement.centerZ + 0.5 - half)
+  }
+
   createRecord(itemId: string, anchor: GridCell, rotation: Rotation): PlacementRecord | null {
     if (!this.canPlace(itemId, anchor, rotation)) return null
 
@@ -179,6 +193,14 @@ export class City {
       anchor: { ...anchor },
       rotation,
     }
+  }
+
+  setColor(id: string, color: string | undefined): boolean {
+    const instance = this.instances.get(id)
+    if (!instance) return false
+    instance.record = { ...instance.record, ...(color ? { color } : { color: undefined }) }
+    this.rebuildModel(instance)
+    return true
   }
 
   insert(record: PlacementRecord): PlacedInstance | null {
@@ -307,6 +329,7 @@ export class City {
     const delta = Math.round((nextSize - previousSize) / 2)
 
     this.grid = world.grid
+    this.world = world
     this.occupancy = new OccupancyMap(this.grid)
 
     const kept: PlacedInstance[] = []
@@ -345,12 +368,6 @@ export class City {
     if (this.theme.id === theme.id) return
 
     this.theme = theme
-    this.materials.dispose()
-    this.materials = new ThemeMaterialLibrary(theme)
-
-    for (const instance of this.instances.values()) {
-      this.rebuildModel(instance)
-    }
   }
 
   /** Reconstruye todos los modelos, por ejemplo cuando termina la carga de glTF. */
@@ -360,7 +377,7 @@ export class City {
         const mask = this.autoTileMask(instance.record.anchor, instance.item.autoTile)
         const resolved = resolveAutoTile(mask)
         instance.variant = resolved.variant
-        instance.variantRotation = resolved.rotation
+        instance.variantRotation = resolved.rotation + instance.record.rotation * (Math.PI / 2)
       } else {
         instance.variantRotation = instance.record.rotation * (Math.PI / 2)
       }
@@ -386,15 +403,25 @@ export class City {
       instance.record.rotation,
     )
     const half = this.grid.halfSize
-    const y = instance.item.category === 'path' ? 0.045 : 0.035
+    const y = this.worldHeightAt(placement.centerX + 0.5 - half, placement.centerZ + 0.5 - half)
+    const offset = instance.item.category === 'path' ? 0.045 : 0.035
 
-    instance.object.position.set(placement.centerX + 0.5 - half, y, placement.centerZ + 0.5 - half)
+    instance.object.position.set(
+      placement.centerX + 0.5 - half,
+      y + offset,
+      placement.centerZ + 0.5 - half,
+    )
   }
 
   private rebuildModel(instance: PlacedInstance): void {
     instance.modelHolder.clear()
 
-    const model = this.library.createInstanceModel(instance.item, instance.variant, this.materials)
+    const model = this.library.createInstanceModel(
+      instance.item,
+      instance.variant,
+      this.materials,
+      instance.record.color,
+    )
     model.rotation.y = instance.variantRotation
     instance.modelHolder.add(model)
   }
@@ -420,14 +447,19 @@ export class City {
   private updateAutoTile(instance: PlacedInstance, style: string): void {
     const mask = this.autoTileMask(instance.record.anchor, style)
     const resolved = resolveAutoTile(mask)
+    const rotation = resolved.rotation + instance.record.rotation * (Math.PI / 2)
 
-    if (instance.variant === resolved.variant && instance.variantRotation === resolved.rotation) {
+    if (instance.variant === resolved.variant && instance.variantRotation === rotation) {
       return
     }
 
     instance.variant = resolved.variant
-    instance.variantRotation = resolved.rotation
+    instance.variantRotation = rotation
     this.rebuildModel(instance)
+  }
+
+  private worldHeightAt(x: number, z: number): number {
+    return this.world.heightAt(x, z)
   }
 
   private autoTileMask(cell: GridCell, style: string): number {

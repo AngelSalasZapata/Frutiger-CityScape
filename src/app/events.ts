@@ -32,6 +32,16 @@ export interface CatalogItemSelectedEvent {
   id: string | null
 }
 
+export interface ObjectColorSelectedEvent {
+  color: string
+}
+
+export interface TerrainSelectedEvent {
+  mode: 'flat' | 'hills'
+  density: number
+  prominence: number
+}
+
 export interface ToolSelectedEvent {
   tool: BuildTool
 }
@@ -51,6 +61,7 @@ export interface SelectionChangedEvent {
   category: CatalogCategory | null
   footprint: [number, number] | null
   rotation: number
+  color: string | null
 }
 
 export interface BuildStateChangedEvent {
@@ -82,6 +93,8 @@ export interface AppEvents {
   themeSelected: ThemeSelectedEvent
   themeChanged: ThemeChangedEvent
   catalogItemSelected: CatalogItemSelectedEvent
+  objectColorSelected: ObjectColorSelectedEvent
+  terrainSelected: TerrainSelectedEvent
   toolSelected: ToolSelectedEvent
   buildAction: BuildActionEvent
   historyRequest: HistoryRequestEvent

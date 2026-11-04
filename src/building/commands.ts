@@ -94,3 +94,22 @@ export class RotateCommand implements BuildCommand {
     this.city.rotateTo(this.id, this.from)
   }
 }
+
+export class ColorCommand implements BuildCommand {
+  readonly label = 'Cambiar color del objeto'
+
+  constructor(
+    private readonly city: City,
+    private readonly id: string,
+    private readonly from: string | undefined,
+    private readonly to: string,
+  ) {}
+
+  execute(): void {
+    this.city.setColor(this.id, this.to)
+  }
+
+  undo(): void {
+    this.city.setColor(this.id, this.from)
+  }
+}

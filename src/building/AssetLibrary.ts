@@ -54,12 +54,13 @@ export class AssetLibrary {
     item: CatalogItem,
     variant: AutoTileVariant | undefined,
     materials: ThemeMaterialLibrary,
+    color?: string,
   ): THREE.Object3D {
     const source = this.getSource(item.id, variant)
     if (!source) return this.createFallback(item, materials)
 
     const model = source.clone(true)
-    applyThemeMaterials(model, materials)
+    applyThemeMaterials(model, materials, color)
     return model
   }
 

@@ -74,6 +74,19 @@ const HUD_TEMPLATE = `
           <p class="hud__world-meta" data-world-meta>—</p>
         </div>
         <div class="hud__presets" role="group" aria-label="Tamaño de la ciudad" data-presets></div>
+        <div class="hud__terrain" aria-label="Relieve del mundo">
+          <label class="hud__terrain-label" for="terrain-mode">Terreno</label>
+          <select id="terrain-mode" class="hud__select hud__terrain-mode" data-terrain-mode>
+            <option value="flat">Plano</option>
+            <option value="hills">Con colinas</option>
+          </select>
+          <label class="hud__range-label">Cantidad <output data-terrain-count>4</output>
+            <input data-terrain-density type="range" min="1" max="12" value="4" />
+          </label>
+          <label class="hud__range-label">Altura <output data-terrain-prominence-label>Media</output>
+            <input data-terrain-prominence type="range" min="0" max="100" value="35" />
+          </label>
+        </div>
       </section>
     </div>
 
@@ -102,6 +115,9 @@ const HUD_TEMPLATE = `
       </div>
 
       <p class="hud__selection" data-selection>Sin selección</p>
+      <label class="hud__color-control">Color del objeto
+        <input type="color" value="#f4faff" data-object-color disabled aria-label="Color de todos los elementos principales" />
+      </label>
     </aside>
 
     <div class="hud__toast" data-toast role="status" aria-live="polite"></div>
@@ -176,6 +192,10 @@ export class Hud {
   private readonly toolButtons = new Map<BuildTool, HTMLButtonElement>()
   private readonly undoButton: HTMLButtonElement
   private readonly redoButton: HTMLButtonElement
+  private readonly objectColor: HTMLInputElement
+  private readonly terrainMode: HTMLSelectElement
+  private readonly terrainDensity: HTMLInputElement
+  private readonly terrainProminence: HTMLInputElement
   private readonly unsubscribers: (() => void)[] = []
 
   private selectedThemeId: string
@@ -209,6 +229,10 @@ export class Hud {
     this.trianglesValue = query(this.root, '[data-triangles]')
     this.undoButton = query(this.root, '[data-history="undo"]') as HTMLButtonElement
     this.redoButton = query(this.root, '[data-history="redo"]') as HTMLButtonElement
+    this.objectColor = query(this.root, '[data-object-color]') as HTMLInputElement
+    this.terrainMode = query(this.root, '[data-terrain-mode]') as HTMLSelectElement
+    this.terrainDensity = query(this.root, '[data-terrain-density]') as HTMLInputElement
+    this.terrainProminence = query(this.root, '[data-terrain-prominence]') as HTMLInputElement
 
     const runtime = query(this.root, '[data-runtime]')
     runtime.textContent = window.desktop
@@ -244,6 +268,10 @@ export class Hud {
     this.categoriesRoot.addEventListener('click', this.handleCategoryClick)
     this.catalogRoot.addEventListener('click', this.handleCatalogClick)
     this.root.addEventListener('click', this.handleActionClick)
+    this.objectColor.addEventListener('input', this.handleObjectColor)
+    this.terrainMode.addEventListener('change', this.handleTerrainChange)
+    this.terrainDensity.addEventListener('input', this.handleTerrainChange)
+    this.terrainProminence.addEventListener('input', this.handleTerrainChange)
 
     this.unsubscribers.push(
       bus.on('frame', this.handleFrame),
@@ -268,6 +296,10 @@ export class Hud {
     this.categoriesRoot.removeEventListener('click', this.handleCategoryClick)
     this.catalogRoot.removeEventListener('click', this.handleCatalogClick)
     this.root.removeEventListener('click', this.handleActionClick)
+    this.objectColor.removeEventListener('input', this.handleObjectColor)
+    this.terrainMode.removeEventListener('change', this.handleTerrainChange)
+    this.terrainDensity.removeEventListener('input', this.handleTerrainChange)
+    this.terrainProminence.removeEventListener('input', this.handleTerrainChange)
     this.root.remove()
   }
 
@@ -397,6 +429,8 @@ export class Hud {
     this.selectedThemeId = theme.id
     const root = document.documentElement
     const dark = theme.dark ?? luminance(theme.palette.atmosphere) < 0.32
+    const panelIsLight = luminance(theme.palette.neutral) > 0.48
+    const accentIsLight = luminance(theme.palette.accent) > 0.52
 
     root.dataset.theme = theme.id
     root.dataset.themeDark = String(dark)
@@ -405,8 +439,9 @@ export class Hud {
       '--aero-accent-strong',
       dark ? theme.palette.accent : theme.palette.atmosphere,
     )
-    root.style.setProperty('--aero-ink', dark ? theme.palette.neutral : theme.palette.atmosphere)
-    root.style.setProperty('--aero-ink-soft', theme.palette.primary)
+    root.style.setProperty('--aero-ink', panelIsLight ? '#092b43' : '#f5fbff')
+    root.style.setProperty('--aero-ink-soft', panelIsLight ? '#185b82' : '#c8edff')
+    root.style.setProperty('--aero-button-fg', accentIsLight ? '#092b1f' : '#ffffff')
     root.style.setProperty('--aero-highlight', theme.palette.accent)
     root.style.setProperty('--aero-panel', theme.palette.neutral)
 
@@ -442,6 +477,23 @@ export class Hud {
 
   private readonly handleThemeChange = (): void => {
     this.bus.emit('themeSelected', { id: this.themeSelect.value })
+  }
+
+  private readonly handleObjectColor = (): void => {
+    this.bus.emit('objectColorSelected', { color: this.objectColor.value })
+  }
+
+  private readonly handleTerrainChange = (): void => {
+    const density = Number(this.terrainDensity.value)
+    const prominence = Number(this.terrainProminence.value) / 100
+    query(this.root, '[data-terrain-count]').textContent = String(density)
+    query(this.root, '[data-terrain-prominence-label]').textContent =
+      prominence < 0.34 ? 'Baja' : prominence < 0.67 ? 'Media' : 'Alta'
+    this.bus.emit('terrainSelected', {
+      mode: this.terrainMode.value === 'hills' ? 'hills' : 'flat',
+      density,
+      prominence,
+    })
   }
 
   private readonly handleToolClick = (event: MouseEvent): void => {
@@ -560,12 +612,15 @@ export class Hud {
     if (!event.name) {
       this.selectionLabel.textContent = 'Sin selección'
       this.selectionLabel.title = ''
+      this.objectColor.disabled = true
       return
     }
 
     const size = event.footprint ? `${event.footprint[0]} × ${event.footprint[1]}` : ''
     this.selectionLabel.textContent = `${event.name} · ${size} · ${event.rotation * 90}°`
     this.selectionLabel.title = event.description ?? ''
+    this.objectColor.disabled = false
+    if (event.color) this.objectColor.value = event.color
   }
 
   private readonly handleAssetsLoaded = (event: AssetsLoadedEvent): void => {

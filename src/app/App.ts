@@ -18,11 +18,13 @@ import { disposeObject3D } from '@/utils/dispose'
 import { World } from '@/world/World'
 import {
   DEFAULT_WORLD_PRESET,
+  DEFAULT_TERRAIN,
+  normalizeTerrain,
   resolveWorldPreset,
   worldScale,
   WORLD_PRESETS,
 } from '@/world/WorldConfig'
-import type { WorldPreset } from '@/world/WorldConfig'
+import type { TerrainSettings, WorldPreset } from '@/world/WorldConfig'
 
 import type { AppEvents } from './events'
 
@@ -57,6 +59,7 @@ export class App {
   private world: World
   private activePreset: WorldPreset
   private theme: ThemeDefinition
+  private terrain: TerrainSettings = DEFAULT_TERRAIN
 
   constructor(container: HTMLElement) {
     this.container = container
@@ -70,7 +73,7 @@ export class App {
     this.lighting = new Lighting(this.theme)
 
     this.activePreset = DEFAULT_WORLD_PRESET
-    this.world = new World(this.activePreset, this.theme)
+    this.world = new World(this.activePreset, this.theme, this.terrain)
 
     this.scene.add(this.sky.object, this.lighting.object, this.world.object)
     this.environmentTexture = this.createEnvironment()
@@ -102,6 +105,9 @@ export class App {
       }),
       this.bus.on('themeSelected', (event) => {
         this.selectTheme(event.id)
+      }),
+      this.bus.on('terrainSelected', (event) => {
+        this.selectTerrain(event)
       }),
     )
 
@@ -195,15 +201,8 @@ export class App {
     const preset = resolveWorldPreset(id)
     if (preset.id === this.activePreset.id) return
 
-    this.scene.remove(this.world.object)
-    this.world.dispose()
-
-    this.world = new World(preset, this.theme)
+    this.replaceWorld(preset)
     this.activePreset = preset
-    this.scene.add(this.world.object)
-
-    this.city.setWorld(this.world)
-    this.build.syncAfterWorldChange()
 
     this.applyWorldMetrics(preset)
     this.publishWorldChanged()
@@ -212,6 +211,38 @@ export class App {
       message: `Diorama ${preset.size} × ${preset.size}.`,
       tone: 'info',
     })
+  }
+
+  private selectTerrain(settings: TerrainSettings): void {
+    const next = normalizeTerrain(settings)
+    if (
+      next.mode === this.terrain.mode &&
+      next.density === this.terrain.density &&
+      next.prominence === this.terrain.prominence
+    ) {
+      return
+    }
+
+    this.terrain = next
+    this.replaceWorld(this.activePreset)
+    this.applyWorldMetrics(this.activePreset)
+    this.publishWorldChanged()
+    this.bus.emit('notice', {
+      message:
+        next.mode === 'flat'
+          ? 'Terreno plano activado.'
+          : `Relieve activado: ${next.density} colinas.`,
+      tone: 'info',
+    })
+  }
+
+  private replaceWorld(preset: WorldPreset): void {
+    this.scene.remove(this.world.object)
+    this.world.dispose()
+    this.world = new World(preset, this.theme, this.terrain)
+    this.scene.add(this.world.object)
+    this.city.setWorld(this.world)
+    this.build.syncAfterWorldChange()
   }
 
   private selectTheme(id: string): void {

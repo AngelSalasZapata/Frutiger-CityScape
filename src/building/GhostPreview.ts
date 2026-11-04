@@ -79,6 +79,7 @@ export class GhostPreview {
     placement: FootprintPlacement,
     valid: boolean,
     halfSize: number,
+    groundY = 0,
   ): void {
     this.object.visible = true
 
@@ -94,7 +95,7 @@ export class GhostPreview {
     this.modelHolder.rotation.y = placement.rotation * (Math.PI / 2)
     this.object.position.set(
       placement.centerX + 0.5 - halfSize,
-      item.category === 'path' ? 0.085 : 0.075,
+      groundY + (item.category === 'path' ? 0.085 : 0.075),
       placement.centerZ + 0.5 - halfSize,
     )
 
@@ -105,7 +106,12 @@ export class GhostPreview {
     this.object.visible = false
   }
 
-  showSelection(placement: FootprintPlacement, height: number, halfSize: number): void {
+  showSelection(
+    placement: FootprintPlacement,
+    height: number,
+    halfSize: number,
+    groundY = 0,
+  ): void {
     this.selectionObject.visible = true
     this.selectionGroup.visible = true
 
@@ -140,7 +146,7 @@ export class GhostPreview {
     this.selectionGeometry = geometry
 
     const lines = new THREE.LineSegments(geometry, this.selectionMaterial)
-    lines.position.set(centerX, 0, centerZ)
+    lines.position.set(centerX, groundY, centerZ)
     this.selectionGroup.add(lines)
   }
 

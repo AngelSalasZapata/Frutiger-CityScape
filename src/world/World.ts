@@ -6,7 +6,7 @@ import { ChunkGrid } from './ChunkGrid'
 import { Terrain } from './Terrain'
 import { Water } from './Water'
 import { WorldGrid } from './WorldGrid'
-import type { WorldPreset } from './WorldConfig'
+import type { TerrainSettings, WorldPreset } from './WorldConfig'
 
 /**
  * Composición del mundo de una sesión. Mantiene juntos la grilla lógica, la
@@ -24,14 +24,19 @@ export class World {
   constructor(
     readonly preset: WorldPreset,
     theme: ThemeDefinition,
+    readonly terrainSettings: TerrainSettings,
   ) {
     this.grid = new WorldGrid(preset.size)
     this.chunks = new ChunkGrid(preset.size, preset.chunkSize)
-    this.terrain = new Terrain(preset, theme, this.chunks)
+    this.terrain = new Terrain(preset, theme, this.chunks, terrainSettings)
     this.water = new Water(preset, theme)
 
     this.object.name = `world-${preset.id}`
     this.object.add(this.water.object, this.terrain.object)
+  }
+
+  heightAt(x: number, z: number): number {
+    return this.terrain.heightAt(x, z)
   }
 
   get gridVisible(): boolean {

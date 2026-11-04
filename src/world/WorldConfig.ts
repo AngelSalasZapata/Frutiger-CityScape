@@ -7,6 +7,30 @@ export interface WorldPreset {
   chunkSize: number
 }
 
+export type TerrainMode = 'flat' | 'hills'
+
+export interface TerrainSettings {
+  mode: TerrainMode
+  /** Número de colinas decorativas dentro del diorama. */
+  density: number
+  /** 0 = lomas bajas; 1 = relieve pronunciado. */
+  prominence: number
+}
+
+export const DEFAULT_TERRAIN: TerrainSettings = {
+  mode: 'flat',
+  density: 4,
+  prominence: 0.35,
+}
+
+export function normalizeTerrain(settings: TerrainSettings): TerrainSettings {
+  return {
+    mode: settings.mode === 'hills' ? 'hills' : 'flat',
+    density: Math.max(1, Math.min(12, Math.round(settings.density))),
+    prominence: Math.max(0, Math.min(1, settings.prominence)),
+  }
+}
+
 interface WorldPresetFile {
   version: number
   default: string

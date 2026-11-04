@@ -57,6 +57,7 @@ function createMaterial(slot: MaterialSlot, definition: ThemeMaterialDefinition)
  */
 export class ThemeMaterialLibrary {
   private readonly cache = new Map<MaterialSlot, THREE.MeshPhysicalMaterial>()
+  private readonly coloredCache = new Map<string, THREE.MeshPhysicalMaterial>()
 
   constructor(readonly theme: ThemeDefinition) {}
 
@@ -71,14 +72,33 @@ export class ThemeMaterialLibrary {
     return material
   }
 
+  getColored(slot: MaterialSlot, color?: string): THREE.MeshPhysicalMaterial {
+    if (!color) return this.get(slot)
+    const key = `${slot}:${color}`
+    let material = this.coloredCache.get(key)
+    if (!material) {
+      material = this.get(slot).clone()
+      material.color.set(color)
+      if (slot === 'emissive') material.emissive.set(color)
+      this.coloredCache.set(key, material)
+    }
+    return material
+  }
+
   dispose(): void {
     for (const material of this.cache.values()) material.dispose()
+    for (const material of this.coloredCache.values()) material.dispose()
     this.cache.clear()
+    this.coloredCache.clear()
   }
 }
 
 /** Reemplaza los materiales del GLB por los del tema, conservando geometrías. */
-export function applyThemeMaterials(root: THREE.Object3D, library: ThemeMaterialLibrary): void {
+export function applyThemeMaterials(
+  root: THREE.Object3D,
+  library: ThemeMaterialLibrary,
+  color?: string,
+): void {
   root.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return
 
@@ -89,9 +109,11 @@ export function applyThemeMaterials(root: THREE.Object3D, library: ThemeMaterial
     const source = Array.isArray(current) ? current[0] : current
 
     if (Array.isArray(current)) {
-      object.material = current.map((material) => library.get(normalizeSlot(material.name)))
+      object.material = current.map((material) =>
+        library.getColored(normalizeSlot(material.name), color),
+      )
     } else {
-      object.material = library.get(normalizeSlot(source?.name))
+      object.material = library.getColored(normalizeSlot(source?.name), color)
     }
   })
 }

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import type { City, PlacementRecord } from '@/building/City'
-import { MoveCommand, PlaceCommand, RemoveCommand, RotateCommand } from '@/building/commands'
+import {
+  ColorCommand,
+  MoveCommand,
+  PlaceCommand,
+  RemoveCommand,
+  RotateCommand,
+} from '@/building/commands'
 
 const RECORD: PlacementRecord = {
   id: 'townhouse-1',
@@ -28,6 +34,10 @@ function createFakeCity() {
     },
     rotateTo(id: string, rotation: number) {
       calls.push(`rotate:${id}:${rotation}`)
+      return true
+    },
+    setColor(id: string, color: string | undefined) {
+      calls.push(`color:${id}:${color ?? 'default'}`)
       return true
     },
   }
@@ -82,5 +92,15 @@ describe('Comandos de construcción', () => {
 
     expect(command.label).toBe('Rotar objeto')
     expect(calls).toEqual(['rotate:townhouse-1:3', 'rotate:townhouse-1:0'])
+  })
+
+  it('ColorCommand restaura el color original', () => {
+    const { city, calls } = createFakeCity()
+    const command = new ColorCommand(city, 'townhouse-1', undefined, '#ff00aa')
+
+    command.execute()
+    command.undo()
+
+    expect(calls).toEqual(['color:townhouse-1:#ff00aa', 'color:townhouse-1:default'])
   })
 })

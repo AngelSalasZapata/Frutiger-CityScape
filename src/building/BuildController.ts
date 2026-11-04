@@ -9,7 +9,7 @@ import type { AssetLibrary } from './AssetLibrary'
 import { BuildHistory } from './BuildHistory'
 import { isItemAvailable, itemsForTheme, resolveCatalogItem } from './Catalog'
 import type { City, PlacedInstance, PlacementRecord } from './City'
-import { MoveCommand, PlaceCommand, RemoveCommand, RotateCommand } from './commands'
+import { ColorCommand, MoveCommand, PlaceCommand, RemoveCommand, RotateCommand } from './commands'
 import type { Rotation } from './Footprint'
 import { describeFootprint, rotateStep } from './Footprint'
 import { GhostPreview } from './GhostPreview'
@@ -87,6 +87,9 @@ export class BuildController {
       options.bus.on('historyRequest', (event) => {
         if (event.action === 'undo') this.undo()
         if (event.action === 'redo') this.redo()
+      }),
+      options.bus.on('objectColorSelected', (event) => {
+        this.colorSelected(event.color)
       }),
     )
 
@@ -177,7 +180,12 @@ export class BuildController {
       selected.item.footprint,
       selected.record.rotation,
     )
-    this.ghost.showSelection(placement, selected.item.height, this.options.city.worldGrid.halfSize)
+    this.ghost.showSelection(
+      placement,
+      selected.item.height,
+      this.options.city.worldGrid.halfSize,
+      this.options.city.groundHeightFor(placement),
+    )
     this.emitSelection()
   }
 
@@ -234,7 +242,13 @@ export class BuildController {
 
       const placement = describeFootprint(cell, instance.item.footprint, instance.record.rotation)
       const valid = city.canOccupyPlacement(placement, instance.id)
-      this.ghost.showGhost(instance.item, placement, valid, city.worldGrid.halfSize)
+      this.ghost.showGhost(
+        instance.item,
+        placement,
+        valid,
+        city.worldGrid.halfSize,
+        city.groundHeightFor(placement),
+      )
       return
     }
 
@@ -251,7 +265,13 @@ export class BuildController {
 
     const placement = describeFootprint(cell, item.footprint, this.rotation)
     const valid = city.canOccupyPlacement(placement)
-    this.ghost.showGhost(item, placement, valid, city.worldGrid.halfSize)
+    this.ghost.showGhost(
+      item,
+      placement,
+      valid,
+      city.worldGrid.halfSize,
+      city.groundHeightFor(placement),
+    )
   }
 
   private updatePointer(event: PointerEvent): void {
@@ -413,6 +433,7 @@ export class BuildController {
     if (!record) return false
 
     this.history.execute(new PlaceCommand(city, record, `Colocar ${item.name}`))
+    city.select(record.id)
     return true
   }
 
@@ -566,6 +587,13 @@ export class BuildController {
   }
 
   private rotateAction(): void {
+    if (this.tool === 'place' && this.itemId) {
+      this.rotation = rotateStep(this.rotation, 1)
+      this.refreshGhost()
+      this.emitState()
+      return
+    }
+
     const selected = this.options.city.selected
 
     if (!selected) {
@@ -583,6 +611,23 @@ export class BuildController {
       message: `Rotaste ${selected.item.name}.`,
       tone: 'info',
     })
+    this.emitState()
+  }
+
+  private colorSelected(color: string): void {
+    const selected = this.options.city.selected
+    if (!selected) {
+      this.options.bus.emit('notice', {
+        message: 'Seleccioná un objeto para cambiar su color.',
+        tone: 'info',
+      })
+      return
+    }
+    if (selected.record.color === color) return
+    this.history.execute(
+      new ColorCommand(this.options.city, selected.id, selected.record.color, color),
+    )
+    this.refreshSelection()
     this.emitState()
   }
 
@@ -794,6 +839,7 @@ export class BuildController {
         category: null,
         footprint: null,
         rotation: this.rotation,
+        color: null,
       })
       return
     }
@@ -805,6 +851,7 @@ export class BuildController {
       category: selected.item.category,
       footprint: [...selected.item.footprint] as [number, number],
       rotation: selected.record.rotation,
+      color: selected.record.color ?? '#f4faff',
     })
   }
 
