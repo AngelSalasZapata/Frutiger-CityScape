@@ -30,7 +30,7 @@ sirven con el esquema propio `app://` para que `fetch` funcione sin las restricc
 Cada release de GitHub publica el instalador NSIS de Windows y un archivo `SHA256SUMS.txt`:
 
 1. Abrí la pestaña **Releases** del repositorio.
-2. Descargá `Frutiger Cityscape Setup <versión>.exe`.
+2. Descargá `Frutiger.Cityscape.Setup.<versión>.exe`.
 3. Verificá el checksum (opcional) y ejecutá el instalador; no requiere Node.js.
 
 El workflow [`release.yml`](.github/workflows/release.yml) se dispara al empujar un tag `v*` (o
