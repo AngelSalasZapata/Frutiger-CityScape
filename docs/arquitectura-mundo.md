@@ -136,6 +136,18 @@ Al cambiar de tema, `App.selectTheme` actualiza cielo, luces, terreno, agua, nie
 ciudad, fantasma y HUD; no reconstruye el mundo ni pierde objetos. El HUD deduce el modo claro/oscuro
 del campo opcional `dark` o de la luminancia de la atmósfera.
 
+## Empaquetado de escritorio
+
+En desarrollo el renderer se sirve desde Vite. En el build empaquetado, `file://` bloquea los
+`fetch` que usa `GLTFLoader`, por lo que `electron/main/index.mts` registra el esquema privilegiado
+`app://` y sirve `dist` con `protocol.handle`. La ventana carga `app://bundle/index.html`; el handler
+normaliza la ruta y rechaza cualquier acceso fuera de `dist` con `403`. Esto permite que los 46 GLB
+se carguen igual que en el navegador.
+
+El workflow `.github/workflows/release.yml` se dispara con tags `v*`, verifica que el tag coincida
+con `package.json`, ejecuta las comprobaciones, empaqueta el instalador NSIS con
+`npm run dist:win` y publica el `.exe` más `SHA256SUMS.txt` en la release de GitHub.
+
 ## Pruebas
 
 Las unitarias cubren `WorldGrid`, `ChunkGrid`, `Footprint`, `OccupancyMap`, `BuildHistory`, los

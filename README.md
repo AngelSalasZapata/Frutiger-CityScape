@@ -22,7 +22,19 @@ mini NPCs recorrer la ciudad.
 | Calidad      | ESLint, Prettier, Vitest, GitHub Actions      |
 
 El renderer es web puro, así que también puede correr en el navegador. Electron solo aporta la
-ventana de escritorio y, más adelante, el empaquetado en instaladores.
+ventana de escritorio y el empaquetado en instaladores. En builds empaquetados los modelos glTF se
+sirven con el esquema propio `app://` para que `fetch` funcione sin las restricciones de `file://`.
+
+## Descargar el ejecutable
+
+Cada release de GitHub publica el instalador NSIS de Windows y un archivo `SHA256SUMS.txt`:
+
+1. Abrí la pestaña **Releases** del repositorio.
+2. Descargá `Frutiger Cityscape Setup <versión>.exe`.
+3. Verificá el checksum (opcional) y ejecutá el instalador; no requiere Node.js.
+
+El workflow [`release.yml`](.github/workflows/release.yml) se dispara al empujar un tag `v*` (o
+manualmente con `workflow_dispatch`) y falla si el tag no coincide con la versión de `package.json`.
 
 ## Requisitos
 
@@ -43,6 +55,20 @@ ventana de escritorio y, más adelante, el empaquetado en instaladores.
 | `npm run format`      | Prettier sobre todo el repo.                                       |
 | `npm run test`        | Pruebas unitarias con Vitest.                                      |
 | `npm run models`      | Regenera los 46 modelos glTF procedurales de `public/assets`.      |
+
+## Publicar una release
+
+```bash
+# 1. Subí la versión en package.json (por ejemplo 0.2.0).
+# 2. Creá y empujá el tag correspondiente.
+git tag v0.2.0
+git push origin main --tags
+```
+
+El workflow **Release** ejecuta formato, lint y pruebas, empaqueta el instalador NSIS y lo adjunta
+a la release de GitHub junto con `SHA256SUMS.txt`. También puede lanzarse a mano desde la pestaña
+**Actions** indicando el tag. Ver [`docs/arquitectura-mundo.md`](docs/arquitectura-mundo.md) para el
+detalle del empaquetado con `app://`.
 
 ## Mundo y tamaños
 
