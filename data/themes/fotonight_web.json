@@ -1,0 +1,95 @@
+{
+  "id": "fotonight_web",
+  "name": "Fotonight Web",
+  "tagline": "Collage onírico, sobreexposición y nostalgia.",
+  "palette": {
+    "primary": "#3aa8ff",
+    "secondary": "#35d56a",
+    "accent": "#ff2fa0",
+    "neutral": "#bfc8d0",
+    "atmosphere": "#ffe81a"
+  },
+  "sky": {
+    "top": "#2b7fff",
+    "horizon": "#ffe81a",
+    "sun": "#fffbe0",
+    "sunDirection": [0.55, 0.42, -0.3],
+    "stars": 0.2
+  },
+  "fog": {
+    "color": "#d8e6ef",
+    "near": 55,
+    "far": 230
+  },
+  "ground": {
+    "grass": "#35d56a",
+    "grid": "#ffffff",
+    "gridCenter": "#ffe81a",
+    "chunk": "#ff2fa0",
+    "shore": "#ff9ad5",
+    "cliff": "#bfc8d0"
+  },
+  "water": {
+    "deep": "#1567a8",
+    "shallow": "#4fe3ff",
+    "sky": "#ffe81a",
+    "foam": "#ffffff"
+  },
+  "lighting": {
+    "hemisphereSky": "#d8f2ff",
+    "hemisphereGround": "#35d56a",
+    "hemisphereIntensity": 1.45,
+    "sun": "#fffbe0",
+    "sunIntensity": 2.9
+  },
+  "construction": {
+    "valid": "#35d56a",
+    "invalid": "#ff2f5e",
+    "selection": "#ffffff",
+    "ghostOpacity": 0.5
+  },
+  "materials": {
+    "glass": {
+      "color": "#9fe8ff",
+      "roughness": 0.12,
+      "metalness": 0.05,
+      "transmission": 0.65,
+      "thickness": 0.4,
+      "ior": 1.38,
+      "clearcoat": 1
+    },
+    "solid": {
+      "color": "#bfc8d0",
+      "roughness": 0.55,
+      "metalness": 0,
+      "clearcoat": 0.25
+    },
+    "accent": {
+      "color": "#ff2fa0",
+      "roughness": 0.3,
+      "metalness": 0.1,
+      "clearcoat": 0.8
+    },
+    "roof": {
+      "color": "#3aa8ff",
+      "roughness": 0.4,
+      "clearcoat": 0.5
+    },
+    "leaf": {
+      "color": "#35d56a",
+      "roughness": 0.6,
+      "clearcoat": 0.2
+    },
+    "metal": {
+      "color": "#bfc8d0",
+      "roughness": 0.4,
+      "metalness": 0.7
+    },
+    "emissive": {
+      "color": "#fffbe0",
+      "roughness": 0.2,
+      "emissive": "#ffe81a",
+      "emissiveIntensity": 2.8
+    }
+  }
+}

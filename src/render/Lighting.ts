@@ -12,6 +12,9 @@ export class Lighting {
 
   private readonly sun: THREE.DirectionalLight
   private readonly hemisphere: THREE.HemisphereLight
+  private readonly sunDirection = new THREE.Vector3(0.45, 0.55, 0.35).normalize()
+
+  private worldSize = 32
 
   constructor(theme: ThemeDefinition) {
     this.hemisphere = new THREE.HemisphereLight(
@@ -28,6 +31,22 @@ export class Lighting {
 
     this.object.name = 'lighting'
     this.object.add(this.hemisphere, this.sun, this.sun.target)
+
+    this.applyTheme(theme)
+    this.setWorldSize(this.worldSize)
+  }
+
+  applyTheme(theme: ThemeDefinition): void {
+    this.hemisphere.color.set(theme.lighting.hemisphereSky)
+    this.hemisphere.groundColor.set(theme.lighting.hemisphereGround)
+    this.hemisphere.intensity = theme.lighting.hemisphereIntensity
+
+    this.sun.color.set(theme.lighting.sun)
+    this.sun.intensity = theme.lighting.sunIntensity
+
+    const [x, y, z] = theme.sky.sunDirection
+    this.sunDirection.set(x, y, z).normalize()
+    this.positionSun()
   }
 
   /**
@@ -35,11 +54,14 @@ export class Lighting {
    * una resolución de sombra razonable en cualquier preset.
    */
   setWorldSize(size: number): void {
+    this.worldSize = size
+
     const half = size / 2
     const diagonal = half * Math.SQRT2
     const extent = diagonal + 4
 
-    this.sun.position.set(half * 0.9, size * 1.15 + 12, half * 0.6)
+    this.positionSun()
+
     this.sun.target.position.set(0, 0, 0)
     this.sun.target.updateMatrixWorld()
 
@@ -56,5 +78,10 @@ export class Lighting {
     this.sun.dispose()
     this.hemisphere.dispose()
     this.sun.target.removeFromParent()
+  }
+
+  private positionSun(): void {
+    const distance = this.worldSize * 1.6 + 24
+    this.sun.position.copy(this.sunDirection).multiplyScalar(distance)
   }
 }

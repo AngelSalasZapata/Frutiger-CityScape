@@ -1,0 +1,95 @@
+{
+  "id": "frutiger_metro",
+  "name": "Frutiger Metro",
+  "tagline": "Color plano, energía vectorial y maximalismo.",
+  "palette": {
+    "primary": "#1e88e5",
+    "secondary": "#ff8a1f",
+    "accent": "#e91e8c",
+    "neutral": "#eef3f8",
+    "atmosphere": "#bfe3fa"
+  },
+  "sky": {
+    "top": "#1e88e5",
+    "horizon": "#ffe1a8",
+    "sun": "#fff3b0",
+    "sunDirection": [0.5, 0.6, -0.25],
+    "stars": 0
+  },
+  "fog": {
+    "color": "#cfe6f7",
+    "near": 70,
+    "far": 260
+  },
+  "ground": {
+    "grass": "#5ed16a",
+    "grid": "#ffffff",
+    "gridCenter": "#fff3b0",
+    "chunk": "#e91e8c",
+    "shore": "#ff8a1f",
+    "cliff": "#bfe3fa"
+  },
+  "water": {
+    "deep": "#1e88e5",
+    "shallow": "#5bd8ff",
+    "sky": "#fff3b0",
+    "foam": "#ffffff"
+  },
+  "lighting": {
+    "hemisphereSky": "#eaf7ff",
+    "hemisphereGround": "#ffb25e",
+    "hemisphereIntensity": 1.3,
+    "sun": "#fff3b0",
+    "sunIntensity": 2.6
+  },
+  "construction": {
+    "valid": "#35d56a",
+    "invalid": "#ff2f5e",
+    "selection": "#fff3b0",
+    "ghostOpacity": 0.42
+  },
+  "materials": {
+    "glass": {
+      "color": "#9fe3ff",
+      "roughness": 0.08,
+      "metalness": 0.1,
+      "transmission": 0.72,
+      "thickness": 0.6,
+      "ior": 1.4,
+      "clearcoat": 1
+    },
+    "solid": {
+      "color": "#eef3f8",
+      "roughness": 0.35,
+      "metalness": 0,
+      "clearcoat": 0.6
+    },
+    "accent": {
+      "color": "#e91e8c",
+      "roughness": 0.3,
+      "metalness": 0.05,
+      "clearcoat": 1
+    },
+    "roof": {
+      "color": "#ff8a1f",
+      "roughness": 0.34,
+      "clearcoat": 0.7
+    },
+    "leaf": {
+      "color": "#35c95f",
+      "roughness": 0.5,
+      "clearcoat": 0.5
+    },
+    "metal": {
+      "color": "#c9d6e2",
+      "roughness": 0.22,
+      "metalness": 0.9
+    },
+    "emissive": {
+      "color": "#fff7c8",
+      "roughness": 0.25,
+      "emissive": "#e91e8c",
+      "emissiveIntensity": 1.5
+    }
+  }
+}

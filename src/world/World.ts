@@ -46,6 +46,11 @@ export class World {
     this.water.update(dt)
   }
 
+  applyTheme(theme: ThemeDefinition): void {
+    this.terrain.applyTheme(theme)
+    this.water.applyTheme(theme)
+  }
+
   toggleGrid(): boolean {
     return this.terrain.toggleGrid()
   }

@@ -1,0 +1,95 @@
+{
+  "id": "helvetica_aqua_aero",
+  "name": "Helvetica Aqua Aero",
+  "tagline": "Arrecifes, cristal y luz bajo el agua.",
+  "palette": {
+    "primary": "#14c8d6",
+    "secondary": "#0a6ebd",
+    "accent": "#ff6f61",
+    "neutral": "#e6faff",
+    "atmosphere": "#053f6b"
+  },
+  "sky": {
+    "top": "#0a6ebd",
+    "horizon": "#b9f5ff",
+    "sun": "#fff5d6",
+    "sunDirection": [0.32, 0.5, 0.44],
+    "stars": 0
+  },
+  "fog": {
+    "color": "#a3eaf5",
+    "near": 60,
+    "far": 240
+  },
+  "ground": {
+    "grass": "#3ec9aa",
+    "grid": "#e6faff",
+    "gridCenter": "#ffffff",
+    "chunk": "#ff6f61",
+    "shore": "#f6e4bd",
+    "cliff": "#7fd9e8"
+  },
+  "water": {
+    "deep": "#053f6b",
+    "shallow": "#4fe6e0",
+    "sky": "#c9fbff",
+    "foam": "#f2ffff"
+  },
+  "lighting": {
+    "hemisphereSky": "#c9fbff",
+    "hemisphereGround": "#2f9f92",
+    "hemisphereIntensity": 1.25,
+    "sun": "#fff5d6",
+    "sunIntensity": 2.35
+  },
+  "construction": {
+    "valid": "#14c8d6",
+    "invalid": "#ff6f61",
+    "selection": "#e6faff",
+    "ghostOpacity": 0.45
+  },
+  "materials": {
+    "glass": {
+      "color": "#9df4ff",
+      "roughness": 0.03,
+      "metalness": 0,
+      "transmission": 0.96,
+      "thickness": 1,
+      "ior": 1.33,
+      "clearcoat": 1,
+      "clearcoatRoughness": 0.02
+    },
+    "solid": {
+      "color": "#e6faff",
+      "roughness": 0.3,
+      "metalness": 0.03,
+      "clearcoat": 0.85
+    },
+    "accent": {
+      "color": "#ff6f61",
+      "roughness": 0.24,
+      "clearcoat": 0.9
+    },
+    "roof": {
+      "color": "#0a6ebd",
+      "roughness": 0.32,
+      "clearcoat": 0.6
+    },
+    "leaf": {
+      "color": "#2fbf8f",
+      "roughness": 0.5,
+      "clearcoat": 0.55
+    },
+    "metal": {
+      "color": "#b8dce8",
+      "roughness": 0.24,
+      "metalness": 0.86
+    },
+    "emissive": {
+      "color": "#d9ffff",
+      "roughness": 0.18,
+      "emissive": "#4fe6e0",
+      "emissiveIntensity": 1.7
+    }
+  }
+}

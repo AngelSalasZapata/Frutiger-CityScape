@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "tree_round",
+      "name": "Árbol redondo",
+      "category": "nature",
+      "themes": ["*"],
+      "model": "assets/models/nature/tree_round.glb",
+      "footprint": [1, 1],
+      "height": 2.8,
+      "physics": "static",
+      "palette": "secondary",
+      "description": "Copa frondosa de parque."
+    },
+    {
+      "id": "palm_tree",
+      "name": "Palmera",
+      "category": "nature",
+      "themes": ["*"],
+      "model": "assets/models/nature/palm_tree.glb",
+      "footprint": [1, 1],
+      "height": 3.2,
+      "physics": "static",
+      "palette": "secondary",
+      "description": "Palmera tropical de silueta suave."
+    },
+    {
+      "id": "flower_bed",
+      "name": "Macizo floral",
+      "category": "nature",
+      "themes": ["*"],
+      "model": "assets/models/nature/flower_bed.glb",
+      "footprint": [1, 1],
+      "height": 0.5,
+      "physics": "static",
+      "palette": "accent",
+      "description": "Flores de colores y césped alto."
+    },
+    {
+      "id": "hedge",
+      "name": "Seto",
+      "category": "nature",
+      "themes": ["*"],
+      "model": "assets/models/nature/hedge.glb",
+      "footprint": [1, 1],
+      "height": 0.9,
+      "physics": "static",
+      "palette": "secondary",
+      "description": "Seto bajo para delimitar jardines."
+    },
+    {
+      "id": "aurora_pine",
+      "name": "Pino Aurora",
+      "category": "nature",
+      "themes": ["frutiger_aurora"],
+      "model": "assets/models/nature/aurora_pine.glb",
+      "footprint": [1, 1],
+      "height": 3.4,
+      "physics": "static",
+      "palette": "primary",
+      "description": "Conífera con vetas de luz polar."
+    },
+    {
+      "id": "coral_cluster",
+      "name": "Coral",
+      "category": "nature",
+      "themes": ["helvetica_aqua_aero"],
+      "model": "assets/models/nature/coral_cluster.glb",
+      "footprint": [1, 1],
+      "height": 1.3,
+      "physics": "static",
+      "palette": "accent",
+      "description": "Racimo de coral glossy."
+    }
+  ]
+}

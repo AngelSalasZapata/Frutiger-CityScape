@@ -17,8 +17,13 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform vec3 uHorizonColor;
   uniform vec3 uSunColor;
   uniform vec3 uSunDirection;
+  uniform float uStars;
 
   varying vec3 vWorldDirection;
+
+  float hash(vec3 direction) {
+    return fract(sin(dot(direction, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+  }
 
   void main() {
     vec3 direction = normalize(vWorldDirection);
@@ -30,6 +35,10 @@ const FRAGMENT_SHADER = /* glsl */ `
     color += uSunColor * pow(sunDot, 320.0) * 1.6;
     color += uSunColor * pow(sunDot, 6.0) * 0.12;
 
+    float starNoise = hash(floor(direction * 420.0));
+    float stars = step(0.9975, starNoise) * smoothstep(0.0, 0.4, direction.y);
+    color += vec3(0.82, 0.94, 1.0) * stars * uStars * 1.4;
+
     gl_FragColor = vec4(color, 1.0);
 
     #include <tonemapping_fragment>
@@ -38,8 +47,9 @@ const FRAGMENT_SHADER = /* glsl */ `
 `
 
 /**
- * Cúpula de cielo con degradado y halo solar. Es geometría y no un skybox
- * para poder cambiar la paleta por tema sin cargar texturas.
+ * Cúpula de cielo con degradado, halo solar y estrellas procedurales para los
+ * temas nocturnos. Es geometría y no un skybox para poder cambiar la paleta
+ * por tema sin cargar texturas.
  */
 export class SkyDome {
   readonly object: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial>
@@ -53,6 +63,7 @@ export class SkyDome {
         uHorizonColor: { value: new THREE.Color(theme.sky.horizon) },
         uSunColor: { value: new THREE.Color(theme.sky.sun) },
         uSunDirection: { value: new THREE.Vector3(sunX, sunY, sunZ).normalize() },
+        uStars: { value: theme.sky.stars ?? 0 },
       },
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
@@ -64,6 +75,17 @@ export class SkyDome {
     this.object = new THREE.Mesh(new THREE.SphereGeometry(800, 48, 32), material)
     this.object.name = 'sky-dome'
     this.object.frustumCulled = false
+  }
+
+  applyTheme(theme: ThemeDefinition): void {
+    const [sunX, sunY, sunZ] = theme.sky.sunDirection
+    const uniforms = this.object.material.uniforms
+
+    uniforms.uTopColor!.value.set(theme.sky.top)
+    uniforms.uHorizonColor!.value.set(theme.sky.horizon)
+    uniforms.uSunColor!.value.set(theme.sky.sun)
+    uniforms.uSunDirection!.value.set(sunX, sunY, sunZ).normalize()
+    uniforms.uStars!.value = theme.sky.stars ?? 0
   }
 
   dispose(): void {

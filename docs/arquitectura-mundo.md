@@ -1,7 +1,8 @@
-# Arquitectura del mundo (Fase 2)
+# Arquitectura del mundo y la construcción (Fases 2–3)
 
-Este documento describe cómo se representa el diorama después de la Fase 2: selector de tamaño,
-grilla lógica, chunks y agua procedural.
+Este documento describe cómo se representa el diorama después de la Fase 2 (selector de tamaño,
+grilla lógica, chunks y agua procedural) y cómo se construye sobre él en la Fase 3 (catálogo glTF,
+snapping, fantasmas, auto-tile, comandos y temas).
 
 ## Presets de tamaño
 
@@ -50,7 +51,9 @@ trabajar por región (render, colisiones, NPCs, guardado) sin cambiar el formato
 3. Reajusta la frustum de sombras (`Lighting.setWorldSize`).
 4. Escala la niebla respecto al preset pequeño (`worldScale`).
 5. Reencuadra la cámara conservando el ángulo orbital (`CameraRig.frameWorld`).
-6. Publica `worldChanged` para que el HUD actualice el preset activo y sus métricas.
+6. Transfiere la ciudad al mundo nuevo con `City.setWorld`: las anclas se desplazan la mitad de la
+   diferencia de tamaño y los items que ya no entran se descartan.
+7. Sincroniza el controlador (`BuildController.syncAfterWorldChange`) y publica `worldChanged`.
 
 `CameraRig.ensureWorldFits` solo aleja la cámara cuando un cambio de relación de aspecto podría
 recortar el diorama; nunca deshace un zoom manual.
@@ -70,7 +73,76 @@ superficie de césped y dos retículas (celdas y chunks) con grosores visuales d
 No usa texturas ni reflejos reales todavía. La Fase 4 lo integrará con el postproceso y el HDRI
 del tema.
 
+## Catálogo y modelos
+
+El catálogo vive en `data/catalog/{buildings,nature,props,vehicles,paths}.json`. `Catalog.ts` los
+fusiona, valida ids únicos, categorías, huellas enteras, física, paleta, temas y la presencia de
+`model` o `autoTile`. Cada item declara:
+
+- `footprint: [width, depth]` en celdas;
+- `height` para el contorno de selección;
+- `themes` (`["*"]` o ids concretos de `data/themes`);
+- `model` (`assets/models/...glb`) o `autoTile` (estilo de camino/cerca).
+
+`AssetLibrary` carga los glTF con `GLTFLoader` y clona la escena para cada instancia. Los materiales
+del GLB llevan nombres de ranura; `applyThemeMaterials` los sustituye por los materiales cacheados
+del tema activo, de modo que cambiar de tema no requiere volver a cargar modelos.
+
+Los 46 `.glb` son procedurales: `tools/model-kit.mjs` arma geometrías y materiales, y
+`tools/generate-models.mjs` los exporta con `GLTFExporter` a `public/assets/models`. Para regenerarlos:
+
+```bash
+npm run models
+```
+
+## Huella, ocupación y snap
+
+- `Footprint.ts` convierte un ancla y una rotación (0–3) en la lista de celdas ocupadas.
+  Los pasos impares intercambian ancho y profundidad; los footprints impares centran el ancla.
+- `OccupancyMap.ts` asigna cada celda a un único id y permite ignorar el id que se está moviendo.
+- `BuildController` proyecta el puntero con `Raycaster` sobre el plano `y = 0`, obtiene la celda con
+  `WorldGrid.worldToCell` y dibuja el fantasma solo si `City.canOccupyPlacement` devuelve `true`.
+
+## Comandos e historial
+
+`BuildHistory` implementa el patrón comando con transacciones:
+
+- `PlaceCommand`, `RemoveCommand`, `MoveCommand` y `RotateCommand` son reversibles e idempotentes.
+- Un arrastre abre una transacción; cada celda colocada agrega un comando.
+- Al soltar el mouse la transacción se confirma como **una sola entrada**, así que un `Ctrl+Z`
+  deshace la calle completa.
+- `Esc` durante un arrastre cancela la transacción y deshace lo colocado.
+- El historial conserva hasta 200 entradas y limpia la pila de redo al ejecutar algo nuevo.
+
+## Auto-tile de caminos y cercas
+
+Cada camino o cerca ocupa una celda y consulta a sus cuatro vecinos del mismo estilo. La máscara
+resultante (`N=1`, `E=2`, `S=4`, `W=8`) se resuelve contra las variantes `dot`, `end`, `straight`,
+`corner`, `tee` y `cross`, rotando la variante base hasta que coincida. Al colocar, mover o eliminar
+un tramo se refrescan solo el tramo y sus vecinos (`City.refreshAutoTileAround`).
+
+Los assets siguen la convención `assets/models/autotile/${style}_${variant}.glb`. Los estilos
+actuales son `path_stone` y `fence_white`.
+
+## Temas
+
+`data/themes/*.json` describe ocho estilos: Aero Classic, Frutiger Eco, Frutiger Aurora,
+Frutiger Metro, Helvetica Aqua Aero, Dark Aero, Fotonight Web y DORFic. `theme.ts` valida la forma y
+los colores al cargar. `ThemeMaterialLibrary` crea una vez por tema los materiales de las once
+ranuras (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`, `metal`, `emissive`, `water`,
+`fabric`) y `resolveThemeMaterial` completa las que el JSON no defina.
+
+Al cambiar de tema, `App.selectTheme` actualiza cielo, luces, terreno, agua, niebla, materiales de la
+ciudad, fantasma y HUD; no reconstruye el mundo ni pierde objetos. El HUD deduce el modo claro/oscuro
+del campo opcional `dark` o de la luminancia de la atmósfera.
+
 ## Pruebas
 
-`tests/unit/WorldGrid.test.ts` y `tests/unit/ChunkGrid.test.ts` cubren límites, centros de celda,
-claves, cobertura completa del área y validación de configuraciones inválidas.
+Las unitarias cubren `WorldGrid`, `ChunkGrid`, `Footprint`, `OccupancyMap`, `BuildHistory`, los
+comandos, `resolveAutoTile` (las 16 máscaras), la validación del catálogo (incluida la existencia de
+cada GLB y de las seis variantes de auto-tile) y la validación de los ocho temas.
+
+La prueba manual de aceptación de la Fase 3 se ejecutó en navegador: colocar una calle de 10 edificios
+arrastrando, deshacerla con un solo `Ctrl+Z`, rehacerla, dibujar 19 celdas de camino y 9 de cerca con
+auto-conexión, rotar/duplicar/eliminar objetos, cambiar los ocho temas y redimensionar el diorama sin
+perder las casas.

@@ -1,0 +1,97 @@
+{
+  "id": "frutiger_eco",
+  "name": "Frutiger Eco",
+  "tagline": "Vegetación, madera y futuro sostenible.",
+  "palette": {
+    "primary": "#3e9e3b",
+    "secondary": "#c8a064",
+    "accent": "#9adb5a",
+    "neutral": "#f7f6ec",
+    "atmosphere": "#7cc6ee"
+  },
+  "sky": {
+    "top": "#7cc6ee",
+    "horizon": "#f0f9e8",
+    "sun": "#fff1c0",
+    "sunDirection": [0.35, 0.62, 0.42],
+    "stars": 0
+  },
+  "fog": {
+    "color": "#ddeed3",
+    "near": 65,
+    "far": 250
+  },
+  "ground": {
+    "grass": "#3e9e3b",
+    "grid": "#f7ffe9",
+    "gridCenter": "#eaf8d8",
+    "chunk": "#9adb5a",
+    "shore": "#c8a064",
+    "cliff": "#9ccb8a"
+  },
+  "water": {
+    "deep": "#1f6f60",
+    "shallow": "#7ed9b5",
+    "sky": "#eaf8e3",
+    "foam": "#f7fff2"
+  },
+  "lighting": {
+    "hemisphereSky": "#eaf8e3",
+    "hemisphereGround": "#4a8c3a",
+    "hemisphereIntensity": 1.2,
+    "sun": "#fff1c0",
+    "sunIntensity": 2.2
+  },
+  "construction": {
+    "valid": "#9adb5a",
+    "invalid": "#e05a3c",
+    "selection": "#f7f6ec",
+    "ghostOpacity": 0.45
+  },
+  "materials": {
+    "glass": {
+      "color": "#bfeac8",
+      "roughness": 0.12,
+      "metalness": 0,
+      "transmission": 0.8,
+      "thickness": 0.7,
+      "ior": 1.42,
+      "clearcoat": 0.8,
+      "clearcoatRoughness": 0.08
+    },
+    "solid": {
+      "color": "#f7f6ec",
+      "roughness": 0.42,
+      "metalness": 0,
+      "clearcoat": 0.35,
+      "clearcoatRoughness": 0.25
+    },
+    "accent": {
+      "color": "#9adb5a",
+      "roughness": 0.38,
+      "clearcoat": 0.4
+    },
+    "roof": {
+      "color": "#3e9e3b",
+      "roughness": 0.48,
+      "clearcoat": 0.2
+    },
+    "leaf": {
+      "color": "#5fbf46",
+      "roughness": 0.62,
+      "clearcoat": 0.3,
+      "clearcoatRoughness": 0.4
+    },
+    "metal": {
+      "color": "#b9c4b0",
+      "roughness": 0.32,
+      "metalness": 0.85
+    },
+    "emissive": {
+      "color": "#f5ffd9",
+      "roughness": 0.3,
+      "emissive": "#9adb5a",
+      "emissiveIntensity": 1.1
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "id": "dark_aero",
+  "name": "Dark Aero",
+  "tagline": "Cromo, vidrio ahumado y luz corporativa.",
+  "dark": true,
+  "palette": {
+    "primary": "#0b0f1a",
+    "secondary": "#1c2433",
+    "accent": "#2e8bff",
+    "neutral": "#c9d3e0",
+    "atmosphere": "#4fd8ff"
+  },
+  "sky": {
+    "top": "#03060f",
+    "horizon": "#16233f",
+    "sun": "#8fd4ff",
+    "sunDirection": [-0.42, 0.5, 0.38],
+    "stars": 0.55
+  },
+  "fog": {
+    "color": "#111b2e",
+    "near": 75,
+    "far": 280
+  },
+  "ground": {
+    "grass": "#22324a",
+    "grid": "#4fd8ff",
+    "gridCenter": "#c9d3e0",
+    "chunk": "#2e8bff",
+    "shore": "#2a3648",
+    "cliff": "#121a28"
+  },
+  "water": {
+    "deep": "#050b16",
+    "shallow": "#194e86",
+    "sky": "#4fd8ff",
+    "foam": "#c9f3ff"
+  },
+  "lighting": {
+    "hemisphereSky": "#2e8bff",
+    "hemisphereGround": "#0b0f1a",
+    "hemisphereIntensity": 0.7,
+    "sun": "#bfe8ff",
+    "sunIntensity": 1.6
+  },
+  "construction": {
+    "valid": "#2e8bff",
+    "invalid": "#ff4d6d",
+    "selection": "#c9d3e0",
+    "ghostOpacity": 0.5
+  },
+  "materials": {
+    "glass": {
+      "color": "#2a4466",
+      "roughness": 0.1,
+      "metalness": 0.15,
+      "transmission": 0.7,
+      "thickness": 0.8,
+      "ior": 1.5,
+      "clearcoat": 1,
+      "clearcoatRoughness": 0.05
+    },
+    "solid": {
+      "color": "#1c2433",
+      "roughness": 0.35,
+      "metalness": 0.25,
+      "clearcoat": 0.6
+    },
+    "accent": {
+      "color": "#2e8bff",
+      "roughness": 0.2,
+      "metalness": 0.35,
+      "clearcoat": 1
+    },
+    "roof": {
+      "color": "#0f1624",
+      "roughness": 0.22,
+      "metalness": 0.4,
+      "clearcoat": 1
+    },
+    "leaf": {
+      "color": "#27605a",
+      "roughness": 0.45,
+      "clearcoat": 0.5
+    },
+    "metal": {
+      "color": "#8b98aa",
+      "roughness": 0.22,
+      "metalness": 1
+    },
+    "emissive": {
+      "color": "#9fdcff",
+      "roughness": 0.15,
+      "emissive": "#2e8bff",
+      "emissiveIntensity": 2.4
+    }
+  }
+}

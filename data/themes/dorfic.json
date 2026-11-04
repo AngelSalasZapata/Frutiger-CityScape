@@ -1,0 +1,95 @@
+{
+  "id": "dorfic",
+  "name": "DORFic",
+  "tagline": "Minimalismo abstracto en naranja y grafito.",
+  "palette": {
+    "primary": "#ff7a00",
+    "secondary": "#ffb347",
+    "accent": "#e8420c",
+    "neutral": "#f5f5f5",
+    "atmosphere": "#2b2f36"
+  },
+  "sky": {
+    "top": "#2b2f36",
+    "horizon": "#ffb347",
+    "sun": "#ffe0b0",
+    "sunDirection": [-0.35, 0.55, 0.42],
+    "stars": 0
+  },
+  "fog": {
+    "color": "#e4c9ae",
+    "near": 68,
+    "far": 255
+  },
+  "ground": {
+    "grass": "#e7d9c9",
+    "grid": "#ffffff",
+    "gridCenter": "#ffb347",
+    "chunk": "#ff7a00",
+    "shore": "#e8420c",
+    "cliff": "#c9c2bb"
+  },
+  "water": {
+    "deep": "#2b2f36",
+    "shallow": "#ffb347",
+    "sky": "#ffe0b0",
+    "foam": "#fff6ea"
+  },
+  "lighting": {
+    "hemisphereSky": "#ffe0b0",
+    "hemisphereGround": "#8a6a52",
+    "hemisphereIntensity": 1.1,
+    "sun": "#ffe0b0",
+    "sunIntensity": 2.1
+  },
+  "construction": {
+    "valid": "#ffb347",
+    "invalid": "#e8420c",
+    "selection": "#f5f5f5",
+    "ghostOpacity": 0.42
+  },
+  "materials": {
+    "glass": {
+      "color": "#ffd9a8",
+      "roughness": 0.4,
+      "metalness": 0,
+      "transmission": 0.8,
+      "thickness": 0.9,
+      "ior": 1.44,
+      "clearcoat": 0.45
+    },
+    "solid": {
+      "color": "#f5f5f5",
+      "roughness": 0.7,
+      "metalness": 0,
+      "clearcoat": 0.15
+    },
+    "accent": {
+      "color": "#ff7a00",
+      "roughness": 0.42,
+      "metalness": 0.05,
+      "clearcoat": 0.35
+    },
+    "roof": {
+      "color": "#e8420c",
+      "roughness": 0.5,
+      "clearcoat": 0.25
+    },
+    "leaf": {
+      "color": "#9a8f7d",
+      "roughness": 0.6,
+      "clearcoat": 0.2
+    },
+    "metal": {
+      "color": "#b8b3ad",
+      "roughness": 0.3,
+      "metalness": 0.8
+    },
+    "emissive": {
+      "color": "#ffe0b0",
+      "roughness": 0.35,
+      "emissive": "#ff7a00",
+      "emissiveIntensity": 2
+    }
+  }
+}

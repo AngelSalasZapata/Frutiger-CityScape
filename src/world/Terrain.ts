@@ -8,6 +8,30 @@ import type { ChunkGrid } from './ChunkGrid'
 import type { WorldPreset } from './WorldConfig'
 
 /**
+ * `GridHelper` guarda los colores en un atributo por vértice, no en el
+ * material. Esta función reescribe ese atributo respetando las líneas
+ * centrales para poder cambiar de tema sin reconstruir la malla.
+ */
+function recolorGrid(grid: THREE.GridHelper, centerHex: string, lineHex: string): void {
+  const position = grid.geometry.getAttribute('position')
+  const color = grid.geometry.getAttribute('color')
+  if (!position || !color) return
+
+  const center = new THREE.Color(centerHex)
+  const line = new THREE.Color(lineHex)
+
+  for (let index = 0; index < position.count; index += 1) {
+    const x = position.getX(index)
+    const z = position.getZ(index)
+    const isCenter = Math.abs(x) < 1e-5 || Math.abs(z) < 1e-5
+    const chosen = isCenter ? center : line
+    color.setXYZ(index, chosen.r, chosen.g, chosen.b)
+  }
+
+  color.needsUpdate = true
+}
+
+/**
  * Isla del diorama: una base de plástico con borde de arena, la superficie de
  * césped y dos retículas superpuestas (celdas y chunks). El agua se construye
  * aparte en `Water` para mantener este archivo enfocado en la tierra.
@@ -15,6 +39,9 @@ import type { WorldPreset } from './WorldConfig'
 export class Terrain {
   readonly object = new THREE.Group()
 
+  private readonly cliffMaterial: THREE.MeshPhysicalMaterial
+  private readonly shoreMaterial: THREE.MeshStandardMaterial
+  private readonly groundMaterial: THREE.MeshStandardMaterial
   private readonly grid: THREE.GridHelper
   private readonly chunkOverlay: THREE.GridHelper
 
@@ -23,7 +50,7 @@ export class Terrain {
     const baseHeight = 2.8
     const shoreThickness = 0.3
 
-    const cliffMaterial = new THREE.MeshPhysicalMaterial({
+    this.cliffMaterial = new THREE.MeshPhysicalMaterial({
       color: theme.ground.cliff,
       roughness: 0.42,
       metalness: 0,
@@ -33,34 +60,35 @@ export class Terrain {
 
     const base = new THREE.Mesh(
       new RoundedBoxGeometry(size + 0.9, baseHeight, size + 0.9, 4, 0.6),
-      cliffMaterial,
+      this.cliffMaterial,
     )
     base.name = 'terrain-base'
     base.position.y = -baseHeight / 2
     base.castShadow = true
     base.receiveShadow = true
 
+    this.shoreMaterial = new THREE.MeshStandardMaterial({
+      color: theme.ground.shore,
+      roughness: 0.72,
+      metalness: 0,
+    })
+
     const shore = new THREE.Mesh(
       new RoundedBoxGeometry(size + 1.4, shoreThickness, size + 1.4, 3, 0.45),
-      new THREE.MeshStandardMaterial({
-        color: theme.ground.shore,
-        roughness: 0.72,
-        metalness: 0,
-      }),
+      this.shoreMaterial,
     )
     shore.name = 'terrain-shore'
     shore.position.y = -shoreThickness / 2 + 0.01
     shore.castShadow = true
     shore.receiveShadow = true
 
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(size, size),
-      new THREE.MeshStandardMaterial({
-        color: theme.ground.grass,
-        roughness: 0.82,
-        metalness: 0,
-      }),
-    )
+    this.groundMaterial = new THREE.MeshStandardMaterial({
+      color: theme.ground.grass,
+      roughness: 0.82,
+      metalness: 0,
+    })
+
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(size, size), this.groundMaterial)
     ground.name = 'terrain-ground'
     ground.rotation.x = -Math.PI / 2
     ground.position.y = 0.03
@@ -99,6 +127,14 @@ export class Terrain {
 
   get chunksVisible(): boolean {
     return this.chunkOverlay.visible
+  }
+
+  applyTheme(theme: ThemeDefinition): void {
+    this.cliffMaterial.color.set(theme.ground.cliff)
+    this.shoreMaterial.color.set(theme.ground.shore)
+    this.groundMaterial.color.set(theme.ground.grass)
+    recolorGrid(this.grid, theme.ground.gridCenter, theme.ground.grid)
+    recolorGrid(this.chunkOverlay, theme.ground.chunk, theme.ground.chunk)
   }
 
   toggleGrid(): boolean {

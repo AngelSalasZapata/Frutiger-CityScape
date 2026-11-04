@@ -1,10 +1,40 @@
-import { app, BrowserWindow, shell } from 'electron'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { app, BrowserWindow, net, protocol, shell } from 'electron'
+import { dirname, join, resolve, sep } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url))
 const APP_TITLE = 'Frutiger Cityscape: Frutiger Aero Sandbox'
 const devServerUrl = process.env.VITE_DEV_SERVER_URL
+const distDirectory = resolve(currentDirectory, '../../dist')
+
+// El renderer carga modelos glTF con fetch. En un build empaquetado file://
+// bloquea esas peticiones, así que servimos `dist` mediante un esquema propio.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+    },
+  },
+])
+
+function registerAppProtocol(): void {
+  protocol.handle('app', (request) => {
+    const url = new URL(request.url)
+    const relativePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
+    const filePath = resolve(distDirectory, relativePath)
+
+    if (filePath !== distDirectory && !filePath.startsWith(`${distDirectory}${sep}`)) {
+      return new Response('Forbidden', { status: 403 })
+    }
+
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+}
 
 let mainWindow: BrowserWindow | null = null
 
@@ -59,7 +89,7 @@ function createMainWindow(): BrowserWindow {
   if (devServerUrl) {
     void window.loadURL(devServerUrl)
   } else {
-    void window.loadFile(join(currentDirectory, '../../dist/index.html'))
+    void window.loadURL('app://bundle/index.html')
   }
 
   window.on('closed', () => {
@@ -84,6 +114,7 @@ if (!hasSingleInstanceLock) {
   app
     .whenReady()
     .then(() => {
+      registerAppProtocol()
       mainWindow = createMainWindow()
 
       app.on('activate', () => {

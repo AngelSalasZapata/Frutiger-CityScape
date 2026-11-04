@@ -88,9 +88,11 @@ const FRAGMENT_SHADER = /* glsl */ `
 export class Water {
   readonly object: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>
 
+  private readonly size: number
   private elapsed = 0
 
   constructor(preset: WorldPreset, theme: ThemeDefinition) {
+    this.size = preset.size
     const scale = worldScale(preset.size)
     const extent = Math.max(188, preset.size * 3.4 + 80)
     const geometry = new THREE.PlaneGeometry(extent, extent, 128, 128)
@@ -124,6 +126,21 @@ export class Water {
   update(dt: number): void {
     this.elapsed = (this.elapsed + dt) % 10_000
     this.object.material.uniforms.uTime!.value = this.elapsed
+  }
+
+  applyTheme(theme: ThemeDefinition): void {
+    const uniforms = this.object.material.uniforms
+    const [sunX, sunY, sunZ] = theme.sky.sunDirection
+    const scale = worldScale(this.size)
+
+    uniforms.uDeepColor!.value.set(theme.water.deep)
+    uniforms.uShallowColor!.value.set(theme.water.shallow)
+    uniforms.uSkyColor!.value.set(theme.water.sky)
+    uniforms.uFoamColor!.value.set(theme.water.foam)
+    uniforms.uSunDirection!.value.set(sunX, sunY, sunZ).normalize()
+    uniforms.uFogColor!.value.set(theme.fog.color)
+    uniforms.uFogNear!.value = theme.fog.near * scale
+    uniforms.uFogFar!.value = theme.fog.far * scale
   }
 
   dispose(): void {

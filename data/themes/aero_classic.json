@@ -1,11 +1,20 @@
 {
   "id": "aero_classic",
   "name": "Aero Classic",
+  "tagline": "Vidrio, burbujas y cielos saturados.",
+  "palette": {
+    "primary": "#2fa4e7",
+    "secondary": "#5cb82e",
+    "accent": "#b6e34b",
+    "neutral": "#f4faff",
+    "atmosphere": "#0b5fa5"
+  },
   "sky": {
     "top": "#1f7fe8",
     "horizon": "#c9f0ff",
     "sun": "#fff4c2",
-    "sunDirection": [0.45, 0.55, 0.35]
+    "sunDirection": [0.45, 0.55, 0.35],
+    "stars": 0
   },
   "fog": {
     "color": "#cdeaff",
@@ -32,5 +41,60 @@
     "hemisphereIntensity": 1.15,
     "sun": "#fff3d1",
     "sunIntensity": 2.4
+  },
+  "construction": {
+    "valid": "#b6e34b",
+    "invalid": "#ff5a5f",
+    "selection": "#ffffff",
+    "ghostOpacity": 0.45
+  },
+  "materials": {
+    "glass": {
+      "color": "#a9e9ff",
+      "roughness": 0.05,
+      "metalness": 0,
+      "transmission": 0.9,
+      "thickness": 0.6,
+      "ior": 1.45,
+      "clearcoat": 1,
+      "clearcoatRoughness": 0.03
+    },
+    "solid": {
+      "color": "#f4faff",
+      "roughness": 0.25,
+      "metalness": 0.04,
+      "clearcoat": 1,
+      "clearcoatRoughness": 0.06
+    },
+    "accent": {
+      "color": "#b6e34b",
+      "roughness": 0.22,
+      "metalness": 0.1,
+      "clearcoat": 1,
+      "clearcoatRoughness": 0.05
+    },
+    "roof": {
+      "color": "#2fa4e7",
+      "roughness": 0.3,
+      "metalness": 0.08,
+      "clearcoat": 0.8
+    },
+    "leaf": {
+      "color": "#5cb82e",
+      "roughness": 0.55,
+      "clearcoat": 0.45,
+      "clearcoatRoughness": 0.25
+    },
+    "metal": {
+      "color": "#c9d3e0",
+      "roughness": 0.24,
+      "metalness": 0.92
+    },
+    "emissive": {
+      "color": "#eaffc0",
+      "roughness": 0.2,
+      "emissive": "#b6e34b",
+      "emissiveIntensity": 1.4
+    }
   }
 }

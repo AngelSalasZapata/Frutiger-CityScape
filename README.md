@@ -4,8 +4,9 @@ Sandbox 3D de ciudades en miniatura con estética **Frutiger Aero**. El jugador 
 del diorama, coloca edificios, props y vehículos con el mouse, interactúa con física real y observa
 mini NPCs recorrer la ciudad.
 
-> Estado actual: **Fase 2 — selector de tamaño, grilla, chunks y diorama con agua** completada.
-> Todavía no hay herramientas de construcción, física ni NPCs (ver [roadmap](#roadmap)).
+> Estado actual: **Fase 3 — construcción con mouse, catálogo glTF, snapping, fantasmas y undo/redo**
+> completada, con **8 temas visuales** conmutables. Todavía no hay física ni NPCs
+> (ver [roadmap](#roadmap)).
 
 ## Stack
 
@@ -41,6 +42,7 @@ ventana de escritorio y, más adelante, el empaquetado en instaladores.
 | `npm run lint`        | ESLint sobre todo el repo.                                         |
 | `npm run format`      | Prettier sobre todo el repo.                                       |
 | `npm run test`        | Pruebas unitarias con Vitest.                                      |
+| `npm run models`      | Regenera los 46 modelos glTF procedurales de `public/assets`.      |
 
 ## Mundo y tamaños
 
@@ -56,14 +58,52 @@ en fases posteriores permitirán renderizado y guardado por región.
 
 Al cambiar de tamaño se reconstruye el mundo completo y se reajustan cámara, niebla y la frustum
 de sombras. El agua usa un shader procedural con oleaje, espuma en la costa y desvanecimiento por
-distancia, sin depender todavía de texturas ni postproceso. Detalles en
-[`docs/arquitectura-mundo.md`](docs/arquitectura-mundo.md).
+distancia, sin depender todavía de texturas ni postproceso. Los objetos ya colocados se conservan:
+sus anclas se desplazan la mitad de la diferencia de tamaño y se eliminan solo si dejan de entrar
+en el diorama. Detalles en [`docs/arquitectura-mundo.md`](docs/arquitectura-mundo.md).
+
+## Construcción
+
+El catálogo se reparte en `data/catalog/*.json` y se fusiona/valida en `src/building/Catalog.ts`.
+Cada item declara categoría, temas compatibles, huella en celdas, altura y modelo glTF (o un estilo
+de auto-tile). Al iniciar, `AssetLibrary` carga los 46 `.glb` y `City` reemplaza los materiales del
+GLB por las ranuras del tema activo (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`,
+`metal`, `emissive`, `water`, `fabric`).
+
+- **Herramientas**: seleccionar, colocar, mover, rotar, duplicar y eliminar.
+- **Snap**: el puntero se proyecta contra el plano del suelo y se ajusta a la celda de la grilla.
+- **Fantasma**: muestra el modelo translúcido y la huella completa en verde (válida) o rojo (ocupada).
+- **Colocación continua**: al arrastrar se interpolan celdas; un solo `Ctrl+Z` deshace la calle entera.
+- **Caminos y cercas**: eligen automáticamente entre `dot`, `end`, `straight`, `corner`, `tee` y
+  `cross` según la máscara de vecinos de 4 direcciones, y se reconectan al colocar o eliminar.
+- **Historial**: comandos reversibles (`PlaceCommand`, `RemoveCommand`, `MoveCommand`,
+  `RotateCommand`) agrupados por transacción, con `Ctrl+Z` / `Ctrl+Y`.
+
+Los modelos son procedurales y se regeneran con `npm run models` (`tools/model-*.mjs`). El catálogo
+actual tiene 36 items: 14 edificios, 6 elementos de naturaleza, 11 props, 3 vehículos, 1 camino y
+1 cerca.
+
+## Temas visuales
+
+Hay ocho temas en `data/themes/*.json`, conmutables en caliente desde el HUD sin reconstruir la
+ciudad: **Frutiger Aero** (`aero_classic`), **Frutiger Eco**, **Frutiger Aurora**,
+**Frutiger Metro**, **Helvetica Aqua Aero**, **Dark Aero**, **Fotonight Web** y **DORFic**.
+Cada archivo define paleta, cielo, niebla, terreno, agua, luces, colores de construcción y la
+matriz de materiales de las once ranuras. El HUD adapta sus paneles de vidrio al tema claro u
+oscuro, y el catálogo filtra los items exclusivos de cada estilo.
 
 ## Controles actuales
 
+- **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).
+- **Arrastrar con la herramienta Colocar**: dibujar una calle, camino o cerca en serie.
 - **Clic derecho + arrastrar**: rotar la cámara.
 - **Rueda**: zoom.
 - **Clic central + arrastrar**: desplazar.
+- **R**: rotar el objeto seleccionado o la orientación de colocación.
+- **D**: duplicar el objeto seleccionado en la celda libre más cercana.
+- **Supr / Backspace**: eliminar el objeto seleccionado.
+- **Esc**: cancelar el arrastre o la selección.
+- **Ctrl+Z**: deshacer. **Ctrl+Y** o **Ctrl+Shift+Z**: rehacer.
 - **1 / 2 / 3**: cambiar el diorama a pequeño, mediano o grande.
 - **G**: mostrar u ocultar la grilla de celdas.
 - **C**: mostrar u ocultar los límites de chunks.
@@ -102,8 +142,8 @@ tests/                Unitarias y e2e
 - [x] **Fase 1** — Vite + TypeScript estricto + Electron, escena Three.js, cámara orbital, loop
       con timestep fijo, HUD y CI.
 - [x] **Fase 2** — Selector de tamaño de ciudad, grilla lógica, chunks y diorama con agua.
-- [ ] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas y undo/redo.
-- [ ] **Fase 4** — Estética Aero v1, postproceso, partículas y tema Aero Classic completo.
+- [x] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas, auto-tile y undo/redo.
+- [ ] **Fase 4** — Estética Aero v1: postproceso, partículas y acabado del tema Aero Classic.
 - [ ] **Fase 5** — Física Rapier, agarre y lanzamiento.
 - [ ] **Fase 6** — NPCs deambulantes con smart objects.
 - [ ] **Fase 7** — Vehículos y tráfico.

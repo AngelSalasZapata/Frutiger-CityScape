@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "path_stone",
+      "name": "Camino de piedra",
+      "category": "path",
+      "themes": ["*"],
+      "autoTile": "path_stone",
+      "footprint": [1, 1],
+      "height": 0.12,
+      "physics": "static",
+      "palette": "neutral",
+      "description": "Se auto-conecta al arrastrar con el mouse."
+    },
+    {
+      "id": "fence_white",
+      "name": "Cerca blanca",
+      "category": "fence",
+      "themes": ["*"],
+      "autoTile": "fence_white",
+      "footprint": [1, 1],
+      "height": 0.8,
+      "physics": "static",
+      "palette": "neutral",
+      "description": "Tramos, esquinas y cruces automáticos."
+    }
+  ]
+}

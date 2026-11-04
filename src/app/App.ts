@@ -1,16 +1,20 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 
+import { AssetLibrary } from '@/building/AssetLibrary'
+import { BuildController } from '@/building/BuildController'
+import { CATALOG_ITEMS } from '@/building/Catalog'
+import { City } from '@/building/City'
 import { EventBus } from '@/core/EventBus'
 import { GameLoop } from '@/core/GameLoop'
 import { CameraRig } from '@/render/CameraRig'
 import { Lighting } from '@/render/Lighting'
 import { Renderer } from '@/render/Renderer'
 import { SkyDome } from '@/render/SkyDome'
-import { AERO_CLASSIC_THEME } from '@/render/theme'
+import { DEFAULT_THEME, resolveTheme, THEMES } from '@/render/theme'
+import type { ThemeDefinition } from '@/render/theme'
 import { Hud } from '@/ui/Hud'
 import { disposeObject3D } from '@/utils/dispose'
-import { PreviewStage } from '@/world/PreviewStage'
 import { World } from '@/world/World'
 import {
   DEFAULT_WORLD_PRESET,
@@ -29,30 +33,34 @@ const KEYBOARD_PRESETS: Readonly<Record<string, string>> = {
 }
 
 /**
- * Composición de la aplicación: render, mundo, UI y bucle. Mantiene el orden
- * de dependencias de la arquitectura (core → simulación → presentación → UI).
+ * Composición de la aplicación: render, mundo, construcción, UI y bucle.
+ * Mantiene el orden de dependencias de la arquitectura
+ * (core → simulación → presentación → UI).
  */
 export class App {
   private readonly bus = new EventBus<AppEvents>()
   private readonly container: HTMLElement
-  private readonly theme = AERO_CLASSIC_THEME
   private readonly scene = new THREE.Scene()
   private readonly renderer: Renderer
   private readonly cameraRig: CameraRig
   private readonly sky: SkyDome
   private readonly lighting: Lighting
-  private readonly preview: PreviewStage
   private readonly hud: Hud
   private readonly loop: GameLoop
   private readonly resizeObserver: ResizeObserver
   private readonly environmentTexture: THREE.Texture
-  private readonly unsubscribePresetSelected: () => void
+  private readonly library = new AssetLibrary()
+  private readonly city: City
+  private readonly build: BuildController
+  private readonly subscriptions: (() => void)[] = []
 
   private world: World
   private activePreset: WorldPreset
+  private theme: ThemeDefinition
 
   constructor(container: HTMLElement) {
     this.container = container
+    this.theme = DEFAULT_THEME
 
     this.renderer = new Renderer(container)
     this.scene.fog = new THREE.Fog(this.theme.fog.color, this.theme.fog.near, this.theme.fog.far)
@@ -60,25 +68,46 @@ export class App {
     this.cameraRig = new CameraRig(this.renderer.instance.domElement)
     this.sky = new SkyDome(this.theme)
     this.lighting = new Lighting(this.theme)
-    this.preview = new PreviewStage()
 
     this.activePreset = DEFAULT_WORLD_PRESET
     this.world = new World(this.activePreset, this.theme)
 
-    this.scene.add(this.sky.object, this.lighting.object, this.world.object, this.preview.object)
+    this.scene.add(this.sky.object, this.lighting.object, this.world.object)
     this.environmentTexture = this.createEnvironment()
+
+    this.city = new City(this.world, this.theme, this.library)
+    this.scene.add(this.city.object)
 
     this.hud = new Hud(container, this.bus, {
       presets: WORLD_PRESETS,
       selectedPresetId: this.activePreset.id,
+      themes: THEMES,
+      selectedThemeId: this.theme.id,
+      items: CATALOG_ITEMS,
     })
 
-    this.unsubscribePresetSelected = this.bus.on('worldPresetSelected', (event) => {
-      this.selectWorldPreset(event.id)
+    this.build = new BuildController({
+      scene: this.scene,
+      camera: this.cameraRig.camera,
+      domElement: this.renderer.instance.domElement,
+      city: this.city,
+      library: this.library,
+      bus: this.bus,
+      theme: this.theme,
     })
+
+    this.subscriptions.push(
+      this.bus.on('worldPresetSelected', (event) => {
+        this.selectWorldPreset(event.id)
+      }),
+      this.bus.on('themeSelected', (event) => {
+        this.selectTheme(event.id)
+      }),
+    )
 
     this.applyWorldMetrics(this.activePreset)
     this.publishWorldChanged()
+    this.publishThemeChanged()
 
     this.loop = new GameLoop({
       fixedHz: 60,
@@ -94,6 +123,8 @@ export class App {
     document.addEventListener('visibilitychange', this.handleVisibilityChange)
 
     this.resize()
+
+    void this.loadCatalog()
   }
 
   start(): void {
@@ -102,12 +133,18 @@ export class App {
 
   dispose(): void {
     this.loop.stop()
-    this.unsubscribePresetSelected()
+
+    for (const unsubscribe of this.subscriptions) unsubscribe()
+    this.subscriptions.length = 0
+
     this.resizeObserver.disconnect()
     this.renderer.instance.domElement.removeEventListener('contextmenu', this.preventContextMenu)
     window.removeEventListener('keydown', this.handleKeyDown)
     document.removeEventListener('visibilitychange', this.handleVisibilityChange)
 
+    this.build.dispose()
+    this.city.dispose()
+    this.library.dispose()
     this.hud.dispose()
     this.bus.clear()
 
@@ -115,7 +152,6 @@ export class App {
     this.environmentTexture.dispose()
     this.sky.dispose()
     this.world.dispose()
-    this.preview.dispose()
     this.lighting.dispose()
     this.cameraRig.dispose()
     this.renderer.dispose()
@@ -135,6 +171,26 @@ export class App {
     return texture
   }
 
+  private async loadCatalog(): Promise<void> {
+    this.bus.emit('notice', { message: 'Cargando catálogo glTF…', tone: 'info' })
+
+    const result = await this.library.load(CATALOG_ITEMS)
+    this.city.refreshModels()
+    this.bus.emit('assetsLoaded', result)
+
+    if (result.failed.length > 0) {
+      this.bus.emit('notice', {
+        message: `No se pudieron cargar ${result.failed.length} modelos; se usan cajas provisionales.`,
+        tone: 'error',
+      })
+    } else {
+      this.bus.emit('notice', {
+        message: `Catálogo listo: ${result.loaded} modelos glTF.`,
+        tone: 'success',
+      })
+    }
+  }
+
   private selectWorldPreset(id: string): void {
     const preset = resolveWorldPreset(id)
     if (preset.id === this.activePreset.id) return
@@ -146,8 +202,42 @@ export class App {
     this.activePreset = preset
     this.scene.add(this.world.object)
 
+    this.city.setWorld(this.world)
+    this.build.syncAfterWorldChange()
+
     this.applyWorldMetrics(preset)
     this.publishWorldChanged()
+
+    this.bus.emit('notice', {
+      message: `Diorama ${preset.size} × ${preset.size}.`,
+      tone: 'info',
+    })
+  }
+
+  private selectTheme(id: string): void {
+    const theme = resolveTheme(id)
+    if (theme.id === this.theme.id) return
+
+    this.theme = theme
+
+    this.sky.applyTheme(theme)
+    this.lighting.applyTheme(theme)
+    this.world.applyTheme(theme)
+    this.city.applyTheme(theme)
+    this.build.applyTheme(theme)
+
+    if (this.scene.fog instanceof THREE.Fog) {
+      this.scene.fog.color.set(theme.fog.color)
+    }
+
+    this.applyWorldMetrics(this.activePreset)
+    this.build.refreshSelection()
+    this.publishThemeChanged()
+
+    this.bus.emit('notice', {
+      message: `Tema activo: ${theme.name}.`,
+      tone: 'info',
+    })
   }
 
   /** Ajusta cámara, niebla y sombras al tamaño del diorama activo. */
@@ -155,6 +245,7 @@ export class App {
     const fog = this.scene.fog
     if (fog instanceof THREE.Fog) {
       const scale = worldScale(preset.size)
+      fog.color.set(this.theme.fog.color)
       fog.near = this.theme.fog.near * scale
       fog.far = this.theme.fog.far * scale
     }
@@ -171,9 +262,12 @@ export class App {
     })
   }
 
+  private publishThemeChanged(): void {
+    this.bus.emit('themeChanged', { theme: this.theme })
+  }
+
   private fixedUpdate(dt: number): void {
     this.world.update(dt)
-    this.preview.update(dt)
   }
 
   private render(alpha: number, frameDelta: number): void {
