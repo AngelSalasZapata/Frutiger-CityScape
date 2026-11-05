@@ -96,12 +96,16 @@ const HUD_TEMPLATE = `
 
       <div class="hud__tools" role="group" aria-label="Herramientas" data-tools></div>
 
-      <div class="hud__categories" role="tablist" aria-label="Categorías del catálogo" data-categories></div>
-      <div class="hud__catalog" role="listbox" aria-label="Catálogo de objetos" data-catalog></div>
+       <label class="hud__catalog-select-control">Sección
+         <select data-categories aria-label="Categoría del catálogo"></select>
+       </label>
+       <label class="hud__catalog-select-control">Elemento disponible
+         <select data-catalog aria-label="Elemento para construir"></select>
+       </label>
 
       <div class="hud__actions" role="group" aria-label="Acciones del objeto">
         <button type="button" class="hud__action" data-action="rotate">Rotar <kbd>R</kbd></button>
-        <button type="button" class="hud__action" data-action="duplicate">Duplicar <kbd>D</kbd></button>
+        <button type="button" class="hud__action" data-action="duplicate">Duplicar <kbd>V</kbd></button>
         <button type="button" class="hud__action" data-action="delete">Eliminar <kbd>Del</kbd></button>
         <button type="button" class="hud__action" data-action="cancel">Cancelar <kbd>Esc</kbd></button>
       </div>
@@ -128,7 +132,8 @@ const HUD_TEMPLATE = `
 
     <div class="hud__hints glass-panel">
       <span><kbd>Clic izq.</kbd> construir / seleccionar</span>
-      <span><kbd>Clic derecho</kbd> rotar cámara</span>
+       <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover cámara</span>
+       <span><kbd>Clic derecho</kbd> rotar cámara</span>
       <span><kbd>Rueda</kbd> zoom</span>
       <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tamaño</span>
       <span><kbd>G</kbd> grilla</span>
@@ -183,8 +188,8 @@ export class Hud {
   private readonly buildMeta: HTMLElement
   private readonly buildHint: HTMLElement
   private readonly toolsRoot: HTMLElement
-  private readonly categoriesRoot: HTMLElement
-  private readonly catalogRoot: HTMLElement
+  private readonly categoriesRoot: HTMLSelectElement
+  private readonly catalogRoot: HTMLSelectElement
   private readonly selectionLabel: HTMLElement
   private readonly toast: HTMLElement
   private readonly assetsLabel: HTMLElement
@@ -225,8 +230,8 @@ export class Hud {
     this.buildMeta = query(this.root, '[data-build-meta]')
     this.buildHint = query(this.root, '[data-build-hint]')
     this.toolsRoot = query(this.root, '[data-tools]')
-    this.categoriesRoot = query(this.root, '[data-categories]')
-    this.catalogRoot = query(this.root, '[data-catalog]')
+    this.categoriesRoot = query(this.root, '[data-categories]') as HTMLSelectElement
+    this.catalogRoot = query(this.root, '[data-catalog]') as HTMLSelectElement
     this.selectionLabel = query(this.root, '[data-selection]')
     this.toast = query(this.root, '[data-toast]')
     this.assetsLabel = query(this.root, '[data-assets]')
@@ -273,8 +278,8 @@ export class Hud {
     this.presetsRoot.addEventListener('click', this.handlePresetClick)
     this.themeSelect.addEventListener('change', this.handleThemeChange)
     this.toolsRoot.addEventListener('click', this.handleToolClick)
-    this.categoriesRoot.addEventListener('click', this.handleCategoryClick)
-    this.catalogRoot.addEventListener('click', this.handleCatalogClick)
+    this.categoriesRoot.addEventListener('change', this.handleCategoryChange)
+    this.catalogRoot.addEventListener('change', this.handleCatalogChange)
     this.root.addEventListener('click', this.handleActionClick)
     this.objectColor.addEventListener('input', this.handleObjectColor)
     this.objectPhysics.addEventListener('change', this.handleObjectPhysics)
@@ -302,8 +307,8 @@ export class Hud {
     this.presetsRoot.removeEventListener('click', this.handlePresetClick)
     this.themeSelect.removeEventListener('change', this.handleThemeChange)
     this.toolsRoot.removeEventListener('click', this.handleToolClick)
-    this.categoriesRoot.removeEventListener('click', this.handleCategoryClick)
-    this.catalogRoot.removeEventListener('click', this.handleCatalogClick)
+    this.categoriesRoot.removeEventListener('change', this.handleCategoryChange)
+    this.catalogRoot.removeEventListener('change', this.handleCatalogChange)
     this.root.removeEventListener('click', this.handleActionClick)
     this.objectColor.removeEventListener('input', this.handleObjectColor)
     this.objectPhysics.removeEventListener('change', this.handleObjectPhysics)
@@ -399,24 +404,22 @@ export class Hud {
 
     for (const category of categories) {
       const count = available.filter((item) => item.category === category).length
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'hud__category'
-      button.dataset.category = category
-      button.setAttribute('role', 'tab')
-      button.setAttribute('aria-selected', String(category === this.activeCategory))
-      button.textContent = `${CATEGORY_LABELS[category]} ${count}`
-      this.categoriesRoot.append(button)
+      const option = document.createElement('option')
+      option.value = category
+      option.textContent = `${CATEGORY_LABELS[category]} (${count})`
+      this.categoriesRoot.append(option)
     }
+
+    if (this.activeCategory) this.categoriesRoot.value = this.activeCategory
   }
 
   private renderCatalog(): void {
     this.catalogRoot.replaceChildren()
 
     if (!this.activeCategory) {
-      const empty = document.createElement('p')
-      empty.className = 'hud__catalog-empty'
+      const empty = document.createElement('option')
       empty.textContent = 'No hay items disponibles en esta categoría.'
+      empty.disabled = true
       this.catalogRoot.append(empty)
       return
     }
@@ -424,24 +427,15 @@ export class Hud {
     const items = this.availableItems().filter((item) => item.category === this.activeCategory)
 
     for (const item of items) {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'hud__item'
-      button.dataset.item = item.id
-      button.setAttribute('role', 'option')
-      button.setAttribute('aria-selected', String(item.id === this.activeItemId))
-      button.title = item.description
+      const option = document.createElement('option')
+      option.value = item.id
+      option.textContent = `${item.name} · ${item.footprint[0]} × ${item.footprint[1]} · ${item.physics}`
+      option.title = item.description
+      this.catalogRoot.append(option)
+    }
 
-      const name = document.createElement('span')
-      name.className = 'hud__item-name'
-      name.textContent = item.name
-
-      const meta = document.createElement('span')
-      meta.className = 'hud__item-meta'
-      meta.textContent = `${item.footprint[0]} × ${item.footprint[1]} · ${item.physics}`
-
-      button.append(name, meta)
-      this.catalogRoot.append(button)
+    if (this.activeItemId && items.some((item) => item.id === this.activeItemId)) {
+      this.catalogRoot.value = this.activeItemId
     }
   }
 
@@ -534,14 +528,8 @@ export class Hud {
     if (tool) this.bus.emit('toolSelected', { tool })
   }
 
-  private readonly handleCategoryClick = (event: MouseEvent): void => {
-    const target = event.target
-    if (!(target instanceof Element)) return
-
-    const button = target.closest<HTMLButtonElement>('[data-category]')
-    if (!button) return
-
-    const category = button.dataset.category as CatalogCategory | undefined
+  private readonly handleCategoryChange = (): void => {
+    const category = this.categoriesRoot.value as CatalogCategory | undefined
     if (!category) return
 
     this.activeCategory = category
@@ -549,14 +537,8 @@ export class Hud {
     this.renderCatalog()
   }
 
-  private readonly handleCatalogClick = (event: MouseEvent): void => {
-    const target = event.target
-    if (!(target instanceof Element)) return
-
-    const button = target.closest<HTMLButtonElement>('[data-item]')
-    if (!button) return
-
-    const id = button.dataset.item
+  private readonly handleCatalogChange = (): void => {
+    const id = this.catalogRoot.value
     if (id) this.bus.emit('catalogItemSelected', { id })
   }
 
@@ -636,9 +618,7 @@ export class Hud {
   }
 
   private updateItemSelection(): void {
-    for (const button of this.catalogRoot.querySelectorAll<HTMLButtonElement>('[data-item]')) {
-      button.setAttribute('aria-selected', String(button.dataset.item === this.activeItemId))
-    }
+    if (this.activeItemId) this.catalogRoot.value = this.activeItemId
   }
 
   private readonly handleSelection = (event: SelectionChangedEvent): void => {

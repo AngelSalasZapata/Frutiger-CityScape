@@ -610,6 +610,32 @@ body {
   scrollbar-color: color-mix(in srgb, var(--aero-accent) 45%, transparent) transparent;
 }
 
+.hud__catalog-select-control {
+  display: grid;
+  gap: 4px;
+  color: var(--aero-ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.hud__catalog-select-control select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--aero-accent) 38%, white);
+  border-radius: 12px;
+  background: var(--aero-panel);
+  color: var(--aero-ink);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hud__catalog-select-control select:focus-visible {
+  outline: 2px solid var(--aero-accent);
+  outline-offset: 2px;
+}
+
 .hud__catalog-empty {
   grid-column: 1 / -1;
   margin: 0;

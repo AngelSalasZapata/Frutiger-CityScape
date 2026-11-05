@@ -173,6 +173,13 @@ categorías scroll horizontal, evitando compresión al crecer el catálogo.
 y `dynamic`. `PhysicsCommand` hace este cambio reversible y `PhysicsWorld` consume el perfil guardado
 al crear los cuerpos Rapier.
 
+### Navegación y paleta v0.4.2
+
+El HUD usa dos `select`: uno de categorías y otro de items disponibles. Así la lista nativa mantiene
+todos los elementos legibles sin deformar la paleta. `CameraRig` mantiene el mouse con OrbitControls y
+suma desplazamiento continuo con W/A/S/D: mueve posición y objetivo de cámara sobre el plano horizontal
+con velocidad proporcional al zoom. El atajo de duplicar se reasignó de `D` a `V` para liberar WASD.
+
 ## Empaquetado de escritorio
 
 En desarrollo el renderer se sirve desde Vite. En el build empaquetado, `file://` bloquea los

@@ -358,7 +358,7 @@ export class App {
   }
 
   private render(alpha: number, frameDelta: number): void {
-    this.cameraRig.update()
+    this.cameraRig.update(frameDelta)
     this.postProcessing.render(frameDelta)
 
     const info = this.renderer.instance.info.render

@@ -923,7 +923,7 @@ export class BuildController {
         event.preventDefault()
         this.deleteSelected()
         break
-      case 'd':
+      case 'v':
         event.preventDefault()
         this.duplicateSelected()
         break

@@ -141,8 +141,8 @@ vehículos con perfil `dynamic` responden a gravedad, fricción y colisiones. Ar
 izquierdo un objeto dinámico para tomarlo con un resorte físico; al soltarlo conserva la inercia.
 Al volver a Construir, los objetos recuperan sus posiciones de grilla para editar sin interferencias.
 
-La paleta de construcción cuenta con scroll vertical para mostrar todos los objetos sin comprimir sus
-botones, y scroll horizontal para las categorías. Tras colocar o seleccionar un objeto, elegí
+La paleta de construcción usa listas desplegables para elegir la sección y el objeto, incluso cuando
+el catálogo crece. Tras colocar o seleccionar un objeto, elegí
 **Estático** o **Dinámico** en **Física del objeto**; el perfil queda guardado por instancia y se aplica
 al entrar en modo Jugar.
 
@@ -153,10 +153,11 @@ al entrar en modo Jugar.
 - **Arrastrar con la herramienta Colocar**: dibujar una calle, camino o cerca en serie.
 - **Clic derecho + arrastrar**: rotar la cámara.
 - **Rueda**: zoom.
+- **W A S D**: desplazar la cámara sobre el diorama.
 - **Clic central + arrastrar**: desplazar.
 - **R**: rotar el objeto seleccionado o la orientación de colocación.
 - **Selector de color**: con un objeto seleccionado, cambiar el color de su composición principal.
-- **D**: duplicar el objeto seleccionado en la celda libre más cercana.
+- **V**: duplicar el objeto seleccionado en la celda libre más cercana.
 - **Supr / Backspace**: eliminar el objeto seleccionado.
 - **Esc**: cancelar el arrastre o la selección.
 - **Ctrl+Z**: deshacer. **Ctrl+Y** o **Ctrl+Shift+Z**: rehacer.
