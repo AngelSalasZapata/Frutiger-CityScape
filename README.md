@@ -146,6 +146,14 @@ el catálogo crece. Tras colocar o seleccionar un objeto, elegí
 **Estático** o **Dinámico** en **Física del objeto**; el perfil queda guardado por instancia y se aplica
 al entrar en modo Jugar.
 
+## NPCs deambulantes
+
+La sección **NPCs** de Construcción incorpora al Habitante Aero a escala pequeña frente a edificios y
+props. En modo Jugar flota al nivel del suelo, pasea, hace pequeños saltos visuales cerca de estructuras
+y vuelve a una postura vertical al retomar su recorrido. Su burbuja no usa texto: muestra símbolos al
+saludar a otros habitantes, reaccionar al agarre, ser lanzado o descubrir edificios, vehículos y otros
+elementos cercanos. Como cualquier objeto colocado, se puede colorear desde el selector al seleccionarlo.
+
 ## Controles actuales
 
 - **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).

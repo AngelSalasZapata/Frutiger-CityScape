@@ -1,10 +1,11 @@
 import buildingsJson from '@data/catalog/buildings.json'
 import natureJson from '@data/catalog/nature.json'
+import npcsJson from '@data/catalog/npcs.json'
 import pathsJson from '@data/catalog/paths.json'
 import propsJson from '@data/catalog/props.json'
 import vehiclesJson from '@data/catalog/vehicles.json'
 
-export type CatalogCategory = 'building' | 'nature' | 'prop' | 'vehicle' | 'path' | 'fence'
+export type CatalogCategory = 'building' | 'nature' | 'npc' | 'prop' | 'vehicle' | 'path' | 'fence'
 export type CatalogPhysics = 'static' | 'dynamic' | 'kinematic'
 export type PaletteRole = 'primary' | 'secondary' | 'accent' | 'neutral'
 
@@ -23,6 +24,7 @@ export interface CatalogItem {
   autoTile?: string
   footprint: [number, number]
   height: number
+  scale?: number
   physics: CatalogPhysics
   palette: PaletteRole
   description: string
@@ -37,6 +39,7 @@ interface CatalogFile {
 const CATALOG_FILES = [
   buildingsJson,
   natureJson,
+  npcsJson,
   propsJson,
   vehiclesJson,
   pathsJson,
@@ -45,6 +48,7 @@ const CATALOG_FILES = [
 export const CATALOG_CATEGORIES: readonly CatalogCategory[] = [
   'building',
   'nature',
+  'npc',
   'prop',
   'vehicle',
   'path',
@@ -54,6 +58,7 @@ export const CATALOG_CATEGORIES: readonly CatalogCategory[] = [
 export const CATEGORY_LABELS: Readonly<Record<CatalogCategory, string>> = {
   building: 'Edificios',
   nature: 'Naturaleza',
+  npc: 'NPCs',
   prop: 'Props',
   vehicle: 'Vehículos',
   path: 'Caminos',
@@ -84,6 +89,10 @@ export function validateCatalog(items: readonly CatalogItem[]): void {
     const [width, depth] = item.footprint
     if (!Number.isInteger(width) || !Number.isInteger(depth) || width < 1 || depth < 1) {
       throw new Error(`Footprint inválido en "${item.id}": ${item.footprint.join(' × ')}`)
+    }
+
+    if (item.scale !== undefined && (!(item.scale > 0) || !Number.isFinite(item.scale))) {
+      throw new Error(`Escala inválida en "${item.id}"`)
     }
 
     if (!CATALOG_PHYSICS.includes(item.physics)) {

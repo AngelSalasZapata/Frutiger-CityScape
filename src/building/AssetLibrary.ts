@@ -61,6 +61,7 @@ export class AssetLibrary {
 
     const model = source.clone(true)
     applyThemeMaterials(model, materials, color)
+    if (item.scale !== undefined) model.scale.setScalar(item.scale)
     return model
   }
 
@@ -69,6 +70,7 @@ export class AssetLibrary {
     if (!source) return null
 
     const model = source.clone(true)
+    if (item.scale !== undefined) model.scale.setScalar(item.scale)
     model.traverse((object) => {
       if (object instanceof THREE.Mesh) object.material = material
     })

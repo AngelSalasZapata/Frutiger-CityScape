@@ -180,6 +180,19 @@ todos los elementos legibles sin deformar la paleta. `CameraRig` mantiene el mou
 suma desplazamiento continuo con W/A/S/D: mueve posición y objetivo de cámara sobre el plano horizontal
 con velocidad proporcional al zoom. El atajo de duplicar se reasignó de `D` a `V` para liberar WASD.
 
+## NPCs deambulantes (Fase 6)
+
+El catálogo suma la categoría `npc` y el GLB de referencia se carga mediante `AssetLibrary` con una
+escala reducida por item. `NpcSystem` descubre estas instancias, dirige paseos cortos durante el modo
+Jugar, aplica flotación y pequeños saltos visuales junto a estructuras, y dibuja una burbuja como
+`THREE.Sprite` con pictogramas generados en canvas. Los símbolos reaccionan a cercanía de otros NPCs,
+objetos y vehículos, al agarre y a velocidades altas después de un lanzamiento.
+
+Los NPC usan cuerpos Rapier dinámicos sin gravedad: pueden ser tomados y lanzados, pero `PhysicsWorld`
+suspende su paseo durante la inercia y después los reorienta verticalmente al continuar, evitando que
+permanezcan tumbados. Su color es el color por instancia de `PlacementRecord`, igual que para el resto
+del catálogo.
+
 ## Empaquetado de escritorio
 
 En desarrollo el renderer se sirve desde Vite. En el build empaquetado, `file://` bloquea los

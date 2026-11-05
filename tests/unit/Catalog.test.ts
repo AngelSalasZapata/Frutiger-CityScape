@@ -37,6 +37,14 @@ describe('Catálogo', () => {
     }
   })
 
+  it('incluye el habitante Aero como NPC dinámico y escalado', () => {
+    const npc = resolveCatalogItem('aero_floater')
+
+    expect(npc.category).toBe('npc')
+    expect(npc.physics).toBe('dynamic')
+    expect(npc.scale).toBeLessThan(1)
+  })
+
   it('referencia temas existentes o el comodín global', () => {
     const themeIds = new Set(THEMES.map((theme) => theme.id))
 

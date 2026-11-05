@@ -10,6 +10,7 @@ interface PhysicsEntry {
   readonly collider: RAPIER.Collider
   readonly height: number
   readonly dynamic: boolean
+  readonly npc: boolean
 }
 
 interface GrabState {
@@ -30,6 +31,7 @@ export class PhysicsWorld {
   private readonly pointer = new THREE.Vector2()
   private readonly target = new THREE.Vector3()
   private grab: GrabState | null = null
+  private readonly npcThrownUntil = new Map<string, number>()
   private active = false
   private initialized = false
   private rapier: typeof RAPIER | null = null
@@ -70,6 +72,7 @@ export class PhysicsWorld {
     this.active = false
     this.releaseGrab()
     this.entries.clear()
+    this.npcThrownUntil.clear()
     this.world?.free()
     this.world = null
     this.city.resetPhysicalPoses()
@@ -102,12 +105,14 @@ export class PhysicsWorld {
     this.domElement.removeEventListener('pointerup', this.handlePointerUp)
     this.domElement.removeEventListener('pointercancel', this.handlePointerUp)
     this.entries.clear()
+    this.npcThrownUntil.clear()
     this.world?.free()
     this.world = null
   }
 
   private createWorld(): void {
     this.entries.clear()
+    this.npcThrownUntil.clear()
     this.world?.free()
     this.world = new this.api.World({ x: 0, y: -9.81, z: 0 })
     const floor = this.api.ColliderDesc.cuboid(512, 0.08, 512).setTranslation(0, -0.08, 0)
@@ -132,6 +137,7 @@ export class PhysicsWorld {
   private addInstance(instance: PlacedInstance): void {
     if (!this.world) return
     const physics = instance.record.physics ?? instance.item.physics
+    const npc = instance.item.category === 'npc'
     const dynamic = physics === 'dynamic'
     const kinematic = physics === 'kinematic'
     const height = Math.max(instance.item.height, 0.24)
@@ -143,7 +149,8 @@ export class PhysicsWorld {
     const position = instance.object.position
     bodyDescription.setTranslation(position.x, position.y + height / 2, position.z)
     bodyDescription.setRotation(instance.object.quaternion)
-    if (dynamic) bodyDescription.setLinearDamping(1.7).setAngularDamping(2.4)
+    if (dynamic) bodyDescription.setLinearDamping(npc ? 2.8 : 1.7).setAngularDamping(npc ? 7 : 2.4)
+    if (npc) bodyDescription.setGravityScale(0).setCanSleep(false)
 
     const body = this.world.createRigidBody(bodyDescription)
     const cells = instance.cells
@@ -161,7 +168,39 @@ export class PhysicsWorld {
         .setRestitution(0.12),
       body,
     )
-    this.entries.set(instance.id, { body, collider, height, dynamic })
+    this.entries.set(instance.id, { body, collider, height, dynamic, npc })
+  }
+
+  moveNpc(id: string, target: THREE.Vector3, dt: number): void {
+    const entry = this.entries.get(id)
+    if (
+      !entry?.npc ||
+      this.grab?.id === id ||
+      (this.npcThrownUntil.get(id) ?? 0) > performance.now()
+    ) {
+      return
+    }
+    const position = entry.body.translation()
+    const direction = new THREE.Vector3(target.x - position.x, 0, target.z - position.z)
+    if (direction.lengthSq() < 0.05) {
+      entry.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      return
+    }
+    direction.normalize().multiplyScalar(Math.min(1.15, direction.length() * 1.25))
+    entry.body.setLinvel(
+      { x: direction.x, y: Math.sin(performance.now() * 0.004) * 0.16, z: direction.z },
+      true,
+    )
+    const angle = Math.atan2(direction.x, direction.z)
+    entry.body.setRotation({ x: 0, y: Math.sin(angle / 2), z: 0, w: Math.cos(angle / 2) }, true)
+    void dt
+  }
+
+  npcInteraction(id: string): { grabbed: boolean; speed: number } {
+    const entry = this.entries.get(id)
+    if (!entry?.npc) return { grabbed: false, speed: 0 }
+    const velocity = entry.body.linvel()
+    return { grabbed: this.grab?.id === id, speed: Math.hypot(velocity.x, velocity.y, velocity.z) }
   }
 
   private updatePointer(event: PointerEvent): void {
@@ -216,6 +255,9 @@ export class PhysicsWorld {
   }
 
   private releaseGrab(): void {
+    if (this.grab && this.entries.get(this.grab.id)?.npc) {
+      this.npcThrownUntil.set(this.grab.id, performance.now() + 1800)
+    }
     this.grab = null
   }
 

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "aero_floater",
+      "name": "Habitante Aero",
+      "category": "npc",
+      "themes": ["*"],
+      "model": "assets/models/npcs/frutiger_aero_character_v2.glb",
+      "footprint": [1, 1],
+      "height": 0.85,
+      "scale": 0.25,
+      "physics": "dynamic",
+      "palette": "primary",
+      "description": "Pequeño habitante flotante que se comunica con símbolos."
+    }
+  ]
+}
