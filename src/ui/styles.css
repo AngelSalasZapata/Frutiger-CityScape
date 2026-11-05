@@ -422,14 +422,42 @@ body {
 .hud__build {
   grid-column: 3;
   grid-row: 2;
-  align-self: start;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: 9px;
   min-height: 0;
-  max-height: 100%;
+  height: 100%;
   padding: 14px 15px 15px;
   pointer-events: auto;
+}
+
+.hud__build-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1px 4px 3px 1px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--aero-accent) 60%, transparent) transparent;
+}
+
+.hud__build-scroll::-webkit-scrollbar,
+.hud__catalog::-webkit-scrollbar,
+.hud__categories::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.hud__build-scroll::-webkit-scrollbar-thumb,
+.hud__catalog::-webkit-scrollbar-thumb,
+.hud__categories::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aero-accent) 58%, transparent);
+  background-clip: padding-box;
 }
 
 .hud__build-meta {
@@ -546,8 +574,12 @@ body {
 
 .hud__categories {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 5px;
+  overflow-x: auto;
+  padding: 1px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--aero-accent) 45%, transparent) transparent;
 }
 
 .hud__category {
@@ -571,8 +603,8 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   min-height: 0;
-  max-height: min(34vh, 310px);
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   padding: 2px;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--aero-accent) 45%, transparent) transparent;
@@ -693,6 +725,36 @@ body {
   color: var(--aero-ink);
   font-size: 10.5px;
   font-weight: 700;
+}
+
+.hud__physics-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--aero-accent) 12%, transparent);
+  color: var(--aero-ink);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.hud__physics-control select {
+  min-width: 92px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--aero-accent) 45%, white);
+  border-radius: 999px;
+  background: var(--aero-panel);
+  color: var(--aero-ink);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.hud__physics-control select:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .hud__color-control input {

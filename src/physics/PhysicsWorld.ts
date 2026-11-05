@@ -131,8 +131,9 @@ export class PhysicsWorld {
 
   private addInstance(instance: PlacedInstance): void {
     if (!this.world) return
-    const dynamic = instance.item.physics === 'dynamic'
-    const kinematic = instance.item.physics === 'kinematic'
+    const physics = instance.record.physics ?? instance.item.physics
+    const dynamic = physics === 'dynamic'
+    const kinematic = physics === 'kinematic'
     const height = Math.max(instance.item.height, 0.24)
     const bodyDescription = dynamic
       ? this.api.RigidBodyDesc.dynamic()

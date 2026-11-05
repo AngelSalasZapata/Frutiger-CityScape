@@ -1,4 +1,4 @@
-import type { CatalogCategory } from '@/building/Catalog'
+import type { CatalogCategory, CatalogPhysics } from '@/building/Catalog'
 import type { BuildTool } from '@/building/tools'
 import type { ThemeDefinition } from '@/render/theme'
 import type { WorldPreset } from '@/world/WorldConfig'
@@ -36,6 +36,10 @@ export interface ObjectColorSelectedEvent {
   color: string
 }
 
+export interface ObjectPhysicsSelectedEvent {
+  physics: CatalogPhysics
+}
+
 export interface TerrainSelectedEvent {
   mode: 'flat' | 'hills'
   density: number
@@ -66,6 +70,7 @@ export interface SelectionChangedEvent {
   footprint: [number, number] | null
   rotation: number
   color: string | null
+  physics: CatalogPhysics | null
 }
 
 export interface BuildStateChangedEvent {
@@ -98,6 +103,7 @@ export interface AppEvents {
   themeChanged: ThemeChangedEvent
   catalogItemSelected: CatalogItemSelectedEvent
   objectColorSelected: ObjectColorSelectedEvent
+  objectPhysicsSelected: ObjectPhysicsSelectedEvent
   terrainSelected: TerrainSelectedEvent
   playModeSelected: PlayModeSelectedEvent
   toolSelected: ToolSelectedEvent

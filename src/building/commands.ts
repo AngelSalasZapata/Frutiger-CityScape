@@ -1,5 +1,6 @@
 import type { BuildCommand } from './BuildHistory'
 import type { City, PlacementRecord, PlacementState } from './City'
+import type { CatalogPhysics } from './Catalog'
 import type { Rotation } from './Footprint'
 
 /**
@@ -111,5 +112,24 @@ export class ColorCommand implements BuildCommand {
 
   undo(): void {
     this.city.setColor(this.id, this.from)
+  }
+}
+
+export class PhysicsCommand implements BuildCommand {
+  readonly label = 'Cambiar física del objeto'
+
+  constructor(
+    private readonly city: City,
+    private readonly id: string,
+    private readonly from: CatalogPhysics,
+    private readonly to: CatalogPhysics,
+  ) {}
+
+  execute(): void {
+    this.city.setPhysics(this.id, this.to)
+  }
+
+  undo(): void {
+    this.city.setPhysics(this.id, this.from)
   }
 }

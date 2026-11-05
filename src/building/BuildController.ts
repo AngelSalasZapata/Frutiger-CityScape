@@ -7,9 +7,17 @@ import type { GridCell } from '@/world/WorldGrid'
 
 import type { AssetLibrary } from './AssetLibrary'
 import { BuildHistory } from './BuildHistory'
-import { isItemAvailable, itemsForTheme, resolveCatalogItem } from './Catalog'
+import { allCatalogItems, resolveCatalogItem } from './Catalog'
+import type { CatalogPhysics } from './Catalog'
 import type { City, PlacedInstance, PlacementRecord } from './City'
-import { ColorCommand, MoveCommand, PlaceCommand, RemoveCommand, RotateCommand } from './commands'
+import {
+  ColorCommand,
+  MoveCommand,
+  PhysicsCommand,
+  PlaceCommand,
+  RemoveCommand,
+  RotateCommand,
+} from './commands'
 import type { Rotation } from './Footprint'
 import { describeFootprint, rotateStep } from './Footprint'
 import { GhostPreview } from './GhostPreview'
@@ -92,6 +100,9 @@ export class BuildController {
       options.bus.on('objectColorSelected', (event) => {
         this.colorSelected(event.color)
       }),
+      options.bus.on('objectPhysicsSelected', (event) => {
+        this.physicsSelected(event.physics)
+      }),
     )
 
     this.emitState()
@@ -113,15 +124,6 @@ export class BuildController {
 
   applyTheme(theme: ThemeDefinition): void {
     this.ghost.applyTheme(theme)
-
-    if (this.itemId) {
-      const item = resolveCatalogItem(this.itemId)
-      if (!isItemAvailable(item, theme.id)) {
-        this.itemId = null
-        this.emitState()
-      }
-    }
-
     this.refreshGhost()
   }
 
@@ -152,14 +154,7 @@ export class BuildController {
       return
     }
 
-    const item = resolveCatalogItem(id)
-    if (!isItemAvailable(item, this.options.city.activeTheme.id)) {
-      this.options.bus.emit('notice', {
-        message: `"${item.name}" no está disponible en este tema.`,
-        tone: 'error',
-      })
-      return
-    }
+    resolveCatalogItem(id)
 
     this.itemId = id
     this.rotation = 0
@@ -224,7 +219,7 @@ export class BuildController {
   private ensurePlacementItem(): void {
     if (this.itemId) return
 
-    const first = itemsForTheme(this.options.city.activeTheme.id)[0]
+    const first = allCatalogItems()[0]
     if (!first) return
 
     this.itemId = first.id
@@ -265,10 +260,6 @@ export class BuildController {
     }
 
     const item = resolveCatalogItem(this.itemId)
-    if (!isItemAvailable(item, city.activeTheme.id)) {
-      this.ghost.hideGhost()
-      return
-    }
 
     const placement = describeFootprint(cell, item.footprint, this.rotation)
     const valid = city.canOccupyPlacement(placement)
@@ -391,13 +382,6 @@ export class BuildController {
     }
 
     const item = resolveCatalogItem(this.itemId)
-    if (!isItemAvailable(item, this.options.city.activeTheme.id)) {
-      this.options.bus.emit('notice', {
-        message: `"${item.name}" no está disponible en este tema.`,
-        tone: 'error',
-      })
-      return
-    }
 
     this.history.beginTransaction(`Construir ${item.name}`)
     this.placing = true
@@ -641,6 +625,23 @@ export class BuildController {
     this.emitState()
   }
 
+  private physicsSelected(physics: CatalogPhysics): void {
+    const selected = this.options.city.selected
+    if (!selected) {
+      this.options.bus.emit('notice', {
+        message: 'Seleccioná un objeto para cambiar su física.',
+        tone: 'info',
+      })
+      return
+    }
+
+    const current = selected.record.physics ?? selected.item.physics
+    if (current === physics) return
+    this.history.execute(new PhysicsCommand(this.options.city, selected.id, current, physics))
+    this.refreshSelection()
+    this.emitState()
+  }
+
   private duplicateSelected(): void {
     const selected = this.options.city.selected
     if (!selected) {
@@ -663,8 +664,13 @@ export class BuildController {
           const candidate = { x: anchor.x + dx, z: anchor.z + dz }
           if (!this.options.city.canPlace(item.id, candidate, rotation)) continue
 
-          const record = this.options.city.createRecord(item.id, candidate, rotation)
-          if (!record) continue
+          const freshRecord = this.options.city.createRecord(item.id, candidate, rotation)
+          if (!freshRecord) continue
+          const record: PlacementRecord = {
+            ...freshRecord,
+            color: selected.record.color,
+            physics: selected.record.physics ?? selected.item.physics,
+          }
 
           this.history.execute(new PlaceCommand(this.options.city, record, `Duplicar ${item.name}`))
           this.options.city.select(record.id)
@@ -850,6 +856,7 @@ export class BuildController {
         footprint: null,
         rotation: this.rotation,
         color: null,
+        physics: null,
       })
       return
     }
@@ -862,6 +869,7 @@ export class BuildController {
       footprint: [...selected.item.footprint] as [number, number],
       rotation: selected.record.rotation,
       color: selected.record.color ?? '#f4faff',
+      physics: selected.record.physics ?? selected.item.physics,
     })
   }
 

@@ -8,13 +8,8 @@ import type {
   ThemeChangedEvent,
   WorldChangedEvent,
 } from '@/app/events'
-import type { CatalogCategory, CatalogItem } from '@/building/Catalog'
-import {
-  CATEGORY_LABELS,
-  CATALOG_CATEGORIES,
-  isItemAvailable,
-  resolveCatalogItem,
-} from '@/building/Catalog'
+import type { CatalogCategory, CatalogItem, CatalogPhysics } from '@/building/Catalog'
+import { CATEGORY_LABELS, CATALOG_CATEGORIES, resolveCatalogItem } from '@/building/Catalog'
 import type { BuildTool } from '@/building/tools'
 import { BUILD_TOOLS, TOOL_HINTS, TOOL_LABELS } from '@/building/tools'
 import type { EventBus } from '@/core/EventBus'
@@ -57,7 +52,7 @@ const HUD_TEMPLATE = `
 
     <div class="hud__left">
       <section class="hud__theme glass-panel">
-        <div class="hud__panel-head">
+       <div class="hud__panel-head">
           <p class="hud__eyebrow">Tema visual</p>
           <span class="hud__theme-count">8 estilos</span>
         </div>
@@ -93,9 +88,10 @@ const HUD_TEMPLATE = `
     <aside class="hud__build glass-panel" aria-label="Paleta de construcción">
       <div class="hud__panel-head">
         <p class="hud__eyebrow">Construcción</p>
-        <p class="hud__build-meta" data-build-meta>0 objetos</p>
-      </div>
-      <p class="hud__build-hint" data-build-hint>Elegí una herramienta.</p>
+         <p class="hud__build-meta" data-build-meta>0 objetos</p>
+       </div>
+       <div class="hud__build-scroll">
+       <p class="hud__build-hint" data-build-hint>Elegí una herramienta.</p>
       <button type="button" class="hud__mode" data-mode="build" aria-pressed="true">Modo: Construir</button>
 
       <div class="hud__tools" role="group" aria-label="Herramientas" data-tools></div>
@@ -116,9 +112,16 @@ const HUD_TEMPLATE = `
       </div>
 
       <p class="hud__selection" data-selection>Sin selección</p>
-      <label class="hud__color-control">Color del objeto
-        <input type="color" value="#f4faff" data-object-color disabled aria-label="Color de todos los elementos principales" />
-      </label>
+       <label class="hud__color-control">Color del objeto
+         <input type="color" value="#f4faff" data-object-color disabled aria-label="Color de todos los elementos principales" />
+       </label>
+       <label class="hud__physics-control">Física del objeto
+         <select data-object-physics disabled aria-label="Física del objeto seleccionado">
+           <option value="static">Estático</option>
+           <option value="dynamic">Dinámico</option>
+         </select>
+       </label>
+       </div>
     </aside>
 
     <div class="hud__toast" data-toast role="status" aria-live="polite"></div>
@@ -194,6 +197,7 @@ export class Hud {
   private readonly undoButton: HTMLButtonElement
   private readonly redoButton: HTMLButtonElement
   private readonly objectColor: HTMLInputElement
+  private readonly objectPhysics: HTMLSelectElement
   private readonly terrainMode: HTMLSelectElement
   private readonly terrainDensity: HTMLInputElement
   private readonly terrainProminence: HTMLInputElement
@@ -205,6 +209,8 @@ export class Hud {
   private toastTimer: number | null = null
   private frames = 0
   private elapsed = 0
+  private playing = false
+  private activeSelectionPhysics: CatalogPhysics | null = null
 
   constructor(container: HTMLElement, bus: EventBus<AppEvents>, options: HudOptions) {
     this.bus = bus
@@ -231,6 +237,7 @@ export class Hud {
     this.undoButton = query(this.root, '[data-history="undo"]') as HTMLButtonElement
     this.redoButton = query(this.root, '[data-history="redo"]') as HTMLButtonElement
     this.objectColor = query(this.root, '[data-object-color]') as HTMLInputElement
+    this.objectPhysics = query(this.root, '[data-object-physics]') as HTMLSelectElement
     this.terrainMode = query(this.root, '[data-terrain-mode]') as HTMLSelectElement
     this.terrainDensity = query(this.root, '[data-terrain-density]') as HTMLInputElement
     this.terrainProminence = query(this.root, '[data-terrain-prominence]') as HTMLInputElement
@@ -270,6 +277,7 @@ export class Hud {
     this.catalogRoot.addEventListener('click', this.handleCatalogClick)
     this.root.addEventListener('click', this.handleActionClick)
     this.objectColor.addEventListener('input', this.handleObjectColor)
+    this.objectPhysics.addEventListener('change', this.handleObjectPhysics)
     this.terrainMode.addEventListener('change', this.handleTerrainChange)
     this.terrainDensity.addEventListener('input', this.handleTerrainChange)
     this.terrainProminence.addEventListener('input', this.handleTerrainChange)
@@ -298,6 +306,7 @@ export class Hud {
     this.catalogRoot.removeEventListener('click', this.handleCatalogClick)
     this.root.removeEventListener('click', this.handleActionClick)
     this.objectColor.removeEventListener('input', this.handleObjectColor)
+    this.objectPhysics.removeEventListener('change', this.handleObjectPhysics)
     this.terrainMode.removeEventListener('change', this.handleTerrainChange)
     this.terrainDensity.removeEventListener('input', this.handleTerrainChange)
     this.terrainProminence.removeEventListener('input', this.handleTerrainChange)
@@ -310,6 +319,8 @@ export class Hud {
     button.dataset.mode = mode
     button.setAttribute('aria-pressed', String(mode === 'play'))
     button.textContent = mode === 'play' ? 'Modo: Jugar' : 'Modo: Construir'
+    this.playing = mode === 'play'
+    this.objectPhysics.disabled = this.playing || !this.activeSelectionPhysics
   }
 
   private createRoot(container: HTMLElement): HTMLElement {
@@ -371,7 +382,7 @@ export class Hud {
   }
 
   private availableItems(): readonly CatalogItem[] {
-    return this.options.items.filter((item) => isItemAvailable(item, this.selectedThemeId))
+    return this.options.items
   }
 
   private renderCategories(): void {
@@ -405,7 +416,7 @@ export class Hud {
     if (!this.activeCategory) {
       const empty = document.createElement('p')
       empty.className = 'hud__catalog-empty'
-      empty.textContent = 'Este tema no tiene items disponibles.'
+      empty.textContent = 'No hay items disponibles en esta categoría.'
       this.catalogRoot.append(empty)
       return
     }
@@ -490,6 +501,13 @@ export class Hud {
 
   private readonly handleObjectColor = (): void => {
     this.bus.emit('objectColorSelected', { color: this.objectColor.value })
+  }
+
+  private readonly handleObjectPhysics = (): void => {
+    const physics = this.objectPhysics.value as CatalogPhysics
+    if (physics === 'static' || physics === 'dynamic') {
+      this.bus.emit('objectPhysicsSelected', { physics })
+    }
   }
 
   private readonly handleTerrainChange = (): void => {
@@ -583,8 +601,6 @@ export class Hud {
 
   private readonly handleThemeChanged = (event: ThemeChangedEvent): void => {
     this.applyTheme(event.theme)
-    this.renderCategories()
-    this.renderCatalog()
   }
 
   private readonly handleBuildState = (event: BuildStateChangedEvent): void => {
@@ -630,6 +646,8 @@ export class Hud {
       this.selectionLabel.textContent = 'Sin selección'
       this.selectionLabel.title = ''
       this.objectColor.disabled = true
+      this.objectPhysics.disabled = true
+      this.activeSelectionPhysics = null
       return
     }
 
@@ -637,7 +655,12 @@ export class Hud {
     this.selectionLabel.textContent = `${event.name} · ${size} · ${event.rotation * 90}°`
     this.selectionLabel.title = event.description ?? ''
     this.objectColor.disabled = false
+    this.activeSelectionPhysics = event.physics
+    this.objectPhysics.disabled = this.playing || event.physics === null
     if (event.color) this.objectColor.value = event.color
+    if (event.physics === 'static' || event.physics === 'dynamic') {
+      this.objectPhysics.value = event.physics
+    }
   }
 
   private readonly handleAssetsLoaded = (event: AssetsLoadedEvent): void => {

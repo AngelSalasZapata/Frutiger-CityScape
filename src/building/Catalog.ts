@@ -126,6 +126,11 @@ export function isItemAvailable(item: CatalogItem, themeId: string): boolean {
   return item.themes.includes('*') || item.themes.includes(themeId)
 }
 
+/** Todos los assets permanecen disponibles; los temas solo identifican su paleta de origen. */
+export function allCatalogItems(category?: CatalogCategory): readonly CatalogItem[] {
+  return category ? CATALOG_ITEMS.filter((item) => item.category === category) : CATALOG_ITEMS
+}
+
 export function itemsForTheme(themeId: string, category?: CatalogCategory): readonly CatalogItem[] {
   return CATALOG_ITEMS.filter(
     (item) => isItemAvailable(item, themeId) && (!category || item.category === category),

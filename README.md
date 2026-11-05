@@ -91,7 +91,7 @@ en el diorama. Detalles en [`docs/arquitectura-mundo.md`](docs/arquitectura-mund
 ## Construcción
 
 El catálogo se reparte en `data/catalog/*.json` y se fusiona/valida en `src/building/Catalog.ts`.
-Cada item declara categoría, temas compatibles, huella en celdas, altura y modelo glTF (o un estilo
+Cada item declara categoría, tema de origen, huella en celdas, altura y modelo glTF (o un estilo
 de auto-tile). Al iniciar, `AssetLibrary` carga los 46 `.glb` y `City` aplica una paleta estable por
 objeto a las ranuras del GLB (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`,
 `metal`, `emissive`, `water`, `fabric`).
@@ -104,8 +104,8 @@ objeto a las ranuras del GLB (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`
   `cross` según la máscara de vecinos de 4 direcciones, y se reconectan al colocar o eliminar.
 - **Historial**: comandos reversibles (`PlaceCommand`, `RemoveCommand`, `MoveCommand`,
   `RotateCommand` y color) agrupados por transacción, con `Ctrl+Z` / `Ctrl+Y`.
-- **Selección y color**: cada objeto recién colocado queda seleccionado; el recuadro fino marca su
-  huella y el selector del HUD recolorea todos sus elementos principales.
+- **Selección, color y física**: cada objeto recién colocado queda seleccionado; el recuadro fino marca
+  su huella y el HUD permite recolorear sus elementos principales y elegir perfil estático o dinámico.
 
 Los modelos son procedurales y se regeneran con `npm run models` (`tools/model-*.mjs`). El catálogo
 actual tiene 36 items: 14 edificios, 6 elementos de naturaleza, 11 props, 3 vehículos, 1 camino y
@@ -118,7 +118,8 @@ ciudad: **Frutiger Aero** (`aero_classic`), **Frutiger Eco**, **Frutiger Aurora*
 **Frutiger Metro**, **Helvetica Aqua Aero**, **Dark Aero**, **Fotonight Web** y **DORFic**.
 Cada archivo define paleta, cielo, niebla, terreno, agua, luces, colores de construcción y la
 matriz de materiales de las once ranuras. El HUD adapta sus paneles de vidrio al tema claro u
-oscuro, y el catálogo filtra los items exclusivos de cada estilo.
+oscuro. Todos los items del catálogo están disponibles independientemente del tema activo; los exclusivos
+conservan como color inicial la paleta de su tema de origen.
 
 El cambio de tema solo afecta el entorno (cielo, agua, iluminación, terreno y HUD): los objetos ya
 colocados conservan su apariencia y sus colores elegidos.
@@ -139,6 +140,11 @@ carga bajo demanda y genera colliders tipo caja: edificios y caminos son estáti
 vehículos con perfil `dynamic` responden a gravedad, fricción y colisiones. Arrastrá con clic
 izquierdo un objeto dinámico para tomarlo con un resorte físico; al soltarlo conserva la inercia.
 Al volver a Construir, los objetos recuperan sus posiciones de grilla para editar sin interferencias.
+
+La paleta de construcción cuenta con scroll vertical para mostrar todos los objetos sin comprimir sus
+botones, y scroll horizontal para las categorías. Tras colocar o seleccionar un objeto, elegí
+**Estático** o **Dinámico** en **Física del objeto**; el perfil queda guardado por instancia y se aplica
+al entrar en modo Jugar.
 
 ## Controles actuales
 

@@ -1,14 +1,14 @@
 import * as THREE from 'three'
 
 import { DEFAULT_THEME } from '@/render/theme'
-import type { ThemeDefinition } from '@/render/theme'
+import { resolveTheme, type ThemeDefinition } from '@/render/theme'
 import { ThemeMaterialLibrary } from '@/render/ThemeMaterials'
 import type { World } from '@/world/World'
 import type { GridCell, WorldGrid } from '@/world/WorldGrid'
 
 import type { AutoTileVariant } from './AssetLibrary'
 import type { AssetLibrary } from './AssetLibrary'
-import type { CatalogItem } from './Catalog'
+import type { CatalogItem, CatalogPhysics, PaletteRole } from './Catalog'
 import { resolveCatalogItem } from './Catalog'
 import type { FootprintPlacement, Rotation } from './Footprint'
 import { describeFootprint, footprintCells, rotateStep } from './Footprint'
@@ -43,6 +43,8 @@ export interface PlacementRecord {
   readonly rotation: Rotation
   /** Color elegido para la composición principal del objeto. */
   readonly color?: string
+  /** Perfil físico elegido para esta instancia, independiente del valor recomendado del catálogo. */
+  readonly physics?: CatalogPhysics
 }
 
 export interface PlacementState {
@@ -186,12 +188,15 @@ export class City {
 
   createRecord(itemId: string, anchor: GridCell, rotation: Rotation): PlacementRecord | null {
     if (!this.canPlace(itemId, anchor, rotation)) return null
+    const item = resolveCatalogItem(itemId)
 
     return {
       id: `${itemId}-${this.nextId++}`,
       itemId,
       anchor: { ...anchor },
       rotation,
+      color: this.defaultColorFor(item),
+      physics: item.physics,
     }
   }
 
@@ -200,6 +205,13 @@ export class City {
     if (!instance) return false
     instance.record = { ...instance.record, ...(color ? { color } : { color: undefined }) }
     this.rebuildModel(instance)
+    return true
+  }
+
+  setPhysics(id: string, physics: CatalogPhysics): boolean {
+    const instance = this.instances.get(id)
+    if (!instance || instance.record.physics === physics) return false
+    instance.record = { ...instance.record, physics }
     return true
   }
 
@@ -384,6 +396,12 @@ export class City {
     if (this.theme.id === theme.id) return
 
     this.theme = theme
+  }
+
+  private defaultColorFor(item: CatalogItem): string {
+    const originThemeId = item.themes.find((themeId) => themeId !== '*')
+    const palette = originThemeId ? resolveTheme(originThemeId).palette : DEFAULT_THEME.palette
+    return palette[item.palette as PaletteRole]
   }
 
   /** Reconstruye todos los modelos, por ejemplo cuando termina la carga de glTF. */

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { AUTO_TILE_VARIANTS } from '@/building/AssetLibrary'
 import {
+  allCatalogItems,
   CATALOG_CATEGORIES,
   CATALOG_ITEMS,
   isItemAvailable,
@@ -72,6 +73,11 @@ describe('Catálogo', () => {
     expect(isItemAvailable(resolveCatalogItem('eco_tower'), 'dark_aero')).toBe(false)
     expect(itemsForTheme('frutiger_eco').some((item) => item.id === 'eco_tower')).toBe(true)
     expect(itemsForTheme('dark_aero').some((item) => item.id === 'eco_tower')).toBe(false)
+  })
+
+  it('expone el catálogo completo sin depender del tema activo', () => {
+    expect(allCatalogItems()).toHaveLength(CATALOG_ITEMS.length)
+    expect(allCatalogItems('building').some((item) => item.id === 'eco_tower')).toBe(true)
   })
 
   it('rechaza catálogos inválidos', () => {

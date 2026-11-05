@@ -161,6 +161,18 @@ identifica cuerpos dinámicos; el puntero aplica un impulso-resorte hacia el pun
 la inercia al soltar. Al regresar a Construir, los cuerpos se liberan y `City.resetPhysicalPoses()`
 recompone las posiciones guardadas, evitando que la simulación corrompa ocupación, comandos o undo.
 
+### Corrección de catálogo v0.4.1
+
+La paleta presenta el catálogo completo sin filtrar por el tema ambiental activo. Las etiquetas
+`themes` del asset se usan como paleta de origen: `City.createRecord()` guarda el color de su rol
+(`primary`, `secondary`, `accent` o `neutral`) en ese tema, para mantener la identidad visual del
+asset al cambiar cielo, agua o iluminación. La zona de construcción tiene scroll vertical y las
+categorías scroll horizontal, evitando compresión al crecer el catálogo.
+
+`PlacementRecord.physics` sobrescribe por instancia el perfil recomendado en catálogo entre `static`
+y `dynamic`. `PhysicsCommand` hace este cambio reversible y `PhysicsWorld` consume el perfil guardado
+al crear los cuerpos Rapier.
+
 ## Empaquetado de escritorio
 
 En desarrollo el renderer se sirve desde Vite. En el build empaquetado, `file://` bloquea los
