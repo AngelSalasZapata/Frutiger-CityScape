@@ -4,8 +4,8 @@ Sandbox 3D de ciudades en miniatura con estética **Frutiger Aero**. El jugador 
 del diorama, coloca edificios, props y vehículos con el mouse, interactúa con física real y observa
 mini NPCs recorrer la ciudad.
 
-> Estado actual: **Fase 3 — construcción con mouse, catálogo glTF, snapping, fantasmas y undo/redo**
-> completada, con **8 temas visuales** conmutables. Todavía no hay física ni NPCs
+> Estado actual: **Fase 4 — estética Frutiger Aero v1** completada: construcción con mouse,
+> catálogo glTF, acabado Aero, postproceso y partículas. Todavía no hay física ni NPCs
 > (ver [roadmap](#roadmap)).
 
 ## Stack
@@ -14,7 +14,7 @@ mini NPCs recorrer la ciudad.
 | ------------ | --------------------------------------------- |
 | Lenguaje     | TypeScript estricto                           |
 | Build        | Vite                                          |
-| Render 3D    | Three.js (WebGL2)                             |
+| Render 3D    | Three.js (WebGL2) + postprocessing            |
 | Física       | Rapier (`@dimforge/rapier3d-compat`) — Fase 5 |
 | UI           | HTML/CSS superpuesto                          |
 | Escritorio   | Electron + electron-builder                   |
@@ -126,6 +126,12 @@ colocados conservan su apariencia y sus colores elegidos.
 El panel **Diorama** permite elegir terreno plano o con colinas, su cantidad y una altura baja,
 media o alta. El relieve es procedural y las construcciones se apoyan a la altura del terreno.
 
+## Estética Aero v1
+
+El renderer aplica antialiasing SMAA, SSAO ligero, bloom suave y viñeta ajustada por tema. Aero
+Classic incluye burbujas y destellos procedurales, materiales físicos con reflejos de entorno y un
+ciclo visual lento de día/atardecer. No necesita texturas ni modelos adicionales.
+
 ## Controles actuales
 
 - **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).
@@ -178,7 +184,7 @@ tests/                Unitarias y e2e
       con timestep fijo, HUD y CI.
 - [x] **Fase 2** — Selector de tamaño de ciudad, grilla lógica, chunks y diorama con agua.
 - [x] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas, auto-tile y undo/redo.
-- [ ] **Fase 4** — Estética Aero v1: postproceso, partículas y acabado del tema Aero Classic.
+- [x] **Fase 4** — Estética Aero v1: postproceso, partículas y acabado del tema Aero Classic.
 - [ ] **Fase 5** — Física Rapier, agarre y lanzamiento.
 - [ ] **Fase 6** — NPCs deambulantes con smart objects.
 - [ ] **Fase 7** — Vehículos y tráfico.

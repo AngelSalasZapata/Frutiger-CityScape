@@ -15,8 +15,10 @@ export class Lighting {
   private readonly sunDirection = new THREE.Vector3(0.45, 0.55, 0.35).normalize()
 
   private worldSize = 32
+  private theme: ThemeDefinition
 
   constructor(theme: ThemeDefinition) {
+    this.theme = theme
     this.hemisphere = new THREE.HemisphereLight(
       theme.lighting.hemisphereSky,
       theme.lighting.hemisphereGround,
@@ -37,6 +39,7 @@ export class Lighting {
   }
 
   applyTheme(theme: ThemeDefinition): void {
+    this.theme = theme
     this.hemisphere.color.set(theme.lighting.hemisphereSky)
     this.hemisphere.groundColor.set(theme.lighting.hemisphereGround)
     this.hemisphere.intensity = theme.lighting.hemisphereIntensity
@@ -46,6 +49,14 @@ export class Lighting {
 
     const [x, y, z] = theme.sky.sunDirection
     this.sunDirection.set(x, y, z).normalize()
+    this.positionSun()
+  }
+
+  /** Actualización de luz solar para el ciclo visual de día y atardecer. */
+  applyDayCycle(daylight: number, sunDirection: THREE.Vector3): void {
+    this.sunDirection.copy(sunDirection).normalize()
+    this.hemisphere.intensity = this.theme.lighting.hemisphereIntensity * (0.42 + daylight * 0.58)
+    this.sun.intensity = this.theme.lighting.sunIntensity * (0.15 + daylight * 0.85)
     this.positionSun()
   }
 

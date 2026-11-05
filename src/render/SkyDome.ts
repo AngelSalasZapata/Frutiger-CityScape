@@ -54,7 +54,10 @@ const FRAGMENT_SHADER = /* glsl */ `
 export class SkyDome {
   readonly object: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial>
 
+  private theme: ThemeDefinition
+
   constructor(theme: ThemeDefinition) {
+    this.theme = theme
     const [sunX, sunY, sunZ] = theme.sky.sunDirection
 
     const material = new THREE.ShaderMaterial({
@@ -78,6 +81,7 @@ export class SkyDome {
   }
 
   applyTheme(theme: ThemeDefinition): void {
+    this.theme = theme
     const [sunX, sunY, sunZ] = theme.sky.sunDirection
     const uniforms = this.object.material.uniforms
 
@@ -86,6 +90,19 @@ export class SkyDome {
     uniforms.uSunColor!.value.set(theme.sky.sun)
     uniforms.uSunDirection!.value.set(sunX, sunY, sunZ).normalize()
     uniforms.uStars!.value = theme.sky.stars ?? 0
+  }
+
+  applyDayCycle(daylight: number, sunDirection: THREE.Vector3): void {
+    const twilight = new THREE.Color('#f09b74')
+    const upperTwilight = new THREE.Color('#35579b')
+    const uniforms = this.object.material.uniforms
+    uniforms
+      .uTopColor!.value.copy(upperTwilight)
+      .lerp(new THREE.Color(this.theme.sky.top), daylight)
+    uniforms
+      .uHorizonColor!.value.copy(twilight)
+      .lerp(new THREE.Color(this.theme.sky.horizon), daylight)
+    uniforms.uSunDirection!.value.copy(sunDirection).normalize()
   }
 
   dispose(): void {

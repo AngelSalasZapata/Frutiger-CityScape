@@ -45,6 +45,11 @@ describe('Temas', () => {
     expect(() => resolveTheme('no-existe')).toThrow(/no existe/)
   })
 
+  it('define el acabado Aero completo para postproceso y partículas', () => {
+    expect(DEFAULT_THEME.postfx).toEqual({ bloom: 0.42, ssao: 0.22, vignette: 0.1 })
+    expect(DEFAULT_THEME.particles).toEqual(['bubbles', 'sparkles'])
+  })
+
   it('resuelve una definición de material para cada ranura', () => {
     for (const theme of THEMES) {
       for (const slot of SLOTS) {

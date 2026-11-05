@@ -1,8 +1,8 @@
-# Arquitectura del mundo y la construcción (Fases 2–3)
+# Arquitectura del mundo, construcción y acabado (Fases 2–4)
 
 Este documento describe cómo se representa el diorama después de la Fase 2 (selector de tamaño,
-grilla lógica, chunks y agua procedural) y cómo se construye sobre él en la Fase 3 (catálogo glTF,
-snapping, fantasmas, auto-tile, comandos y temas).
+grilla lógica, chunks y agua procedural), cómo se construye sobre él en la Fase 3 (catálogo glTF,
+snapping, fantasmas, auto-tile, comandos y temas) y el acabado Aero de la Fase 4.
 
 ## Presets de tamaño
 
@@ -70,8 +70,8 @@ superficie de césped y dos retículas (celdas y chunks) con grosores visuales d
 - espuma alrededor de la isla;
 - desvanecimiento por distancia equivalente a la niebla del tema.
 
-No usa texturas ni reflejos reales todavía. La Fase 4 lo integrará con el postproceso y el HDRI
-del tema.
+No usa texturas externas. Los materiales físicos reciben un entorno procedural PMREM para reflejos
+suaves y el resultado se integra con el postproceso de la Fase 4.
 
 ## Catálogo y modelos
 
@@ -132,9 +132,21 @@ los colores al cargar. `ThemeMaterialLibrary` crea una vez por tema los material
 ranuras (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`, `stone`, `metal`, `emissive`, `water`,
 `fabric`) y `resolveThemeMaterial` completa las que el JSON no defina.
 
-Al cambiar de tema, `App.selectTheme` actualiza cielo, luces, terreno, agua, niebla, materiales de la
-ciudad, fantasma y HUD; no reconstruye el mundo ni pierde objetos. El HUD deduce el modo claro/oscuro
+Al cambiar de tema, `App.selectTheme` actualiza cielo, luces, terreno, agua, niebla, fantasma y HUD;
+no reconstruye el mundo ni pierde objetos. Los objetos conservan su paleta o color elegido, por lo que
+el tema afecta solo al entorno. El HUD deduce el modo claro/oscuro
 del campo opcional `dark` o de la luminancia de la atmósfera.
+
+## Acabado Aero (Fase 4)
+
+`PostProcessing` compone `RenderPass`, SMAA, SSAO de baja intensidad, bloom con blur mipmap y una
+viñeta sutil. Los parámetros opcionales `postfx` del JSON permiten que cada tema ajuste bloom, SSAO y
+viñeta; Aero Classic declara el acabado completo.
+
+`AeroParticles` dibuja burbujas y destellos mediante `THREE.Points`, sin texturas ni modelos GLB.
+`DayCycle` anima lentamente la dirección solar, la intensidad de luces, el cielo y la niebla entre día
+y atardecer. Ambos sistemas se actualizan en el timestep fijo y se recrean al cambiar el tamaño del
+mundo para mantener su distribución correcta.
 
 ## Empaquetado de escritorio
 

@@ -8,13 +8,16 @@ import { City } from '@/building/City'
 import { EventBus } from '@/core/EventBus'
 import { GameLoop } from '@/core/GameLoop'
 import { CameraRig } from '@/render/CameraRig'
+import { DayCycle } from '@/render/DayCycle'
 import { Lighting } from '@/render/Lighting'
+import { PostProcessing } from '@/render/PostProcessing'
 import { Renderer } from '@/render/Renderer'
 import { SkyDome } from '@/render/SkyDome'
 import { DEFAULT_THEME, resolveTheme, THEMES } from '@/render/theme'
 import type { ThemeDefinition } from '@/render/theme'
 import { Hud } from '@/ui/Hud'
 import { disposeObject3D } from '@/utils/dispose'
+import { AeroParticles } from '@/fx/AeroParticles'
 import { World } from '@/world/World'
 import {
   DEFAULT_WORLD_PRESET,
@@ -51,12 +54,15 @@ export class App {
   private readonly loop: GameLoop
   private readonly resizeObserver: ResizeObserver
   private readonly environmentTexture: THREE.Texture
+  private readonly postProcessing: PostProcessing
+  private readonly dayCycle: DayCycle
   private readonly library = new AssetLibrary()
   private readonly city: City
   private readonly build: BuildController
   private readonly subscriptions: (() => void)[] = []
 
   private world: World
+  private particles: AeroParticles
   private activePreset: WorldPreset
   private theme: ThemeDefinition
   private terrain: TerrainSettings = DEFAULT_TERRAIN
@@ -77,6 +83,15 @@ export class App {
 
     this.scene.add(this.sky.object, this.lighting.object, this.world.object)
     this.environmentTexture = this.createEnvironment()
+    this.postProcessing = new PostProcessing(
+      this.renderer.instance,
+      this.scene,
+      this.cameraRig.camera,
+    )
+    this.postProcessing.applyTheme(this.theme)
+    this.dayCycle = new DayCycle(this.theme)
+    this.particles = new AeroParticles(this.activePreset.size, this.theme)
+    this.scene.add(this.particles.object)
 
     this.city = new City(this.world, this.theme, this.library)
     this.scene.add(this.city.object)
@@ -155,6 +170,8 @@ export class App {
     this.bus.clear()
 
     this.scene.environment = null
+    this.postProcessing.dispose()
+    this.particles.dispose()
     this.environmentTexture.dispose()
     this.sky.dispose()
     this.world.dispose()
@@ -241,6 +258,10 @@ export class App {
     this.world.dispose()
     this.world = new World(preset, this.theme, this.terrain)
     this.scene.add(this.world.object)
+    this.scene.remove(this.particles.object)
+    this.particles.dispose()
+    this.particles = new AeroParticles(preset.size, this.theme)
+    this.scene.add(this.particles.object)
     this.city.setWorld(this.world)
     this.build.syncAfterWorldChange()
   }
@@ -256,6 +277,9 @@ export class App {
     this.world.applyTheme(theme)
     this.city.applyTheme(theme)
     this.build.applyTheme(theme)
+    this.postProcessing.applyTheme(theme)
+    this.dayCycle.applyTheme(theme)
+    this.particles.applyTheme(theme)
 
     if (this.scene.fog instanceof THREE.Fog) {
       this.scene.fog.color.set(theme.fog.color)
@@ -299,11 +323,15 @@ export class App {
 
   private fixedUpdate(dt: number): void {
     this.world.update(dt)
+    this.particles.update(dt)
+    if (this.scene.fog instanceof THREE.Fog) {
+      this.dayCycle.update(dt, this.sky, this.lighting, this.scene.fog)
+    }
   }
 
   private render(alpha: number, frameDelta: number): void {
     this.cameraRig.update()
-    this.renderer.render(this.scene, this.cameraRig.camera)
+    this.postProcessing.render(frameDelta)
 
     const info = this.renderer.instance.info.render
     this.bus.emit('frame', {
@@ -321,6 +349,7 @@ export class App {
     if (width === 0 || height === 0) return
 
     this.renderer.setSize(width, height)
+    this.postProcessing.setSize(width, height)
     this.cameraRig.setAspect(width / height)
     this.cameraRig.ensureWorldFits(this.activePreset.size)
   }

@@ -48,6 +48,12 @@
     "selection": "#ffffff",
     "ghostOpacity": 0.45
   },
+  "postfx": {
+    "bloom": 0.42,
+    "ssao": 0.22,
+    "vignette": 0.1
+  },
+  "particles": ["bubbles", "sparkles"],
   "materials": {
     "glass": {
       "color": "#a9e9ff",

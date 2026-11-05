@@ -90,6 +90,12 @@ export interface ThemeDefinition {
     selection: string
     ghostOpacity: number
   }
+  postfx?: {
+    bloom: number
+    ssao: number
+    vignette: number
+  }
+  particles?: readonly ('bubbles' | 'sparkles')[]
   materials: Partial<Record<MaterialSlot, ThemeMaterialDefinition>>
 }
 
