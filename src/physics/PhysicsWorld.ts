@@ -150,7 +150,7 @@ export class PhysicsWorld {
     bodyDescription.setTranslation(position.x, position.y + height / 2, position.z)
     bodyDescription.setRotation(instance.object.quaternion)
     if (dynamic) bodyDescription.setLinearDamping(npc ? 2.8 : 1.7).setAngularDamping(npc ? 7 : 2.4)
-    if (npc) bodyDescription.setGravityScale(0).setCanSleep(false)
+    if (npc) bodyDescription.setCanSleep(false)
 
     const body = this.world.createRigidBody(bodyDescription)
     const cells = instance.cells
@@ -187,10 +187,7 @@ export class PhysicsWorld {
       return
     }
     direction.normalize().multiplyScalar(Math.min(1.15, direction.length() * 1.25))
-    entry.body.setLinvel(
-      { x: direction.x, y: Math.sin(performance.now() * 0.004) * 0.16, z: direction.z },
-      true,
-    )
+    entry.body.setLinvel({ x: direction.x, y: entry.body.linvel().y, z: direction.z }, true)
     const angle = Math.atan2(direction.x, direction.z)
     entry.body.setRotation({ x: 0, y: Math.sin(angle / 2), z: 0, w: Math.cos(angle / 2) }, true)
     void dt
@@ -250,7 +247,8 @@ export class PhysicsWorld {
     if (!this.grab) return
     const position = this.grab.body.translation()
     this.target.set(position.x, position.y, position.z)
-    this.target.sub(this.grab.target).multiplyScalar(-28 * dt)
+    const strength = 125 * dt * this.grab.body.mass()
+    this.target.sub(this.grab.target).multiplyScalar(-strength)
     this.grab.body.applyImpulse(this.target, true)
   }
 

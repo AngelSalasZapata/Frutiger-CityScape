@@ -456,6 +456,7 @@ export class City {
       this.materials,
       instance.record.color,
     )
+    model.position.y = instance.item.groundOffset ?? 0
     model.rotation.y = instance.variantRotation
     instance.modelHolder.add(model)
   }

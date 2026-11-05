@@ -25,6 +25,7 @@ export interface CatalogItem {
   footprint: [number, number]
   height: number
   scale?: number
+  groundOffset?: number
   physics: CatalogPhysics
   palette: PaletteRole
   description: string
@@ -93,6 +94,13 @@ export function validateCatalog(items: readonly CatalogItem[]): void {
 
     if (item.scale !== undefined && (!(item.scale > 0) || !Number.isFinite(item.scale))) {
       throw new Error(`Escala inválida en "${item.id}"`)
+    }
+
+    if (
+      item.groundOffset !== undefined &&
+      (!Number.isFinite(item.groundOffset) || item.groundOffset < 0)
+    ) {
+      throw new Error(`Elevación inválida en "${item.id}"`)
     }
 
     if (!CATALOG_PHYSICS.includes(item.physics)) {

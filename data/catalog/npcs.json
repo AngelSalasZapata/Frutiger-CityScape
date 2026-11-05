@@ -10,6 +10,7 @@
       "footprint": [1, 1],
       "height": 0.85,
       "scale": 0.25,
+      "groundOffset": 0.16,
       "physics": "dynamic",
       "palette": "primary",
       "description": "Pequeño habitante flotante que se comunica con símbolos."

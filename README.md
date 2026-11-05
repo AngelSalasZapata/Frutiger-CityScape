@@ -153,6 +153,9 @@ props. En modo Jugar flota al nivel del suelo, pasea, hace pequeños saltos visu
 y vuelve a una postura vertical al retomar su recorrido. Su burbuja no usa texto: muestra símbolos al
 saludar a otros habitantes, reaccionar al agarre, ser lanzado o descubrir edificios, vehículos y otros
 elementos cercanos. Como cualquier objeto colocado, se puede colorear desde el selector al seleccionarlo.
+Los NPC usan gravedad al ser manipulados: al soltarlos caen y retoman su postura natural al seguir su
+recorrido. El agarre físico escala ahora con la masa del cuerpo para mover con fluidez edificios y props
+configurados como dinámicos.
 
 ## Controles actuales
 

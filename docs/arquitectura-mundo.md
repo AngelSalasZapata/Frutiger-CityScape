@@ -193,6 +193,13 @@ suspende su paseo durante la inercia y después los reorienta verticalmente al c
 permanezcan tumbados. Su color es el color por instancia de `PlacementRecord`, igual que para el resto
 del catálogo.
 
+### Ajuste físico v0.5.1
+
+El modelo NPC recibe `groundOffset` en catálogo para separarlo visualmente del suelo sin alterar su
+collider. Sus cuerpos Rapier vuelven a usar gravedad, de modo que un lanzamiento ya no lo deja suspendido.
+El impulso de agarre se multiplica por `RigidBody.mass()`, equilibrando la respuesta de objetos grandes y
+pequeños con el mismo gesto de mouse.
+
 ## Empaquetado de escritorio
 
 En desarrollo el renderer se sirve desde Vite. En el build empaquetado, `file://` bloquea los
