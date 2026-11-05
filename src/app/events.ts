@@ -42,6 +42,10 @@ export interface TerrainSelectedEvent {
   prominence: number
 }
 
+export interface PlayModeSelectedEvent {
+  mode: 'build' | 'play'
+}
+
 export interface ToolSelectedEvent {
   tool: BuildTool
 }
@@ -95,6 +99,7 @@ export interface AppEvents {
   catalogItemSelected: CatalogItemSelectedEvent
   objectColorSelected: ObjectColorSelectedEvent
   terrainSelected: TerrainSelectedEvent
+  playModeSelected: PlayModeSelectedEvent
   toolSelected: ToolSelectedEvent
   buildAction: BuildActionEvent
   historyRequest: HistoryRequestEvent

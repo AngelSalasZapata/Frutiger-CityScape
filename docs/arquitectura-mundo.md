@@ -1,8 +1,9 @@
-# Arquitectura del mundo, construcción y acabado (Fases 2–4)
+# Arquitectura del mundo, construcción, acabado y física (Fases 2–5)
 
 Este documento describe cómo se representa el diorama después de la Fase 2 (selector de tamaño,
 grilla lógica, chunks y agua procedural), cómo se construye sobre él en la Fase 3 (catálogo glTF,
-snapping, fantasmas, auto-tile, comandos y temas) y el acabado Aero de la Fase 4.
+snapping, fantasmas, auto-tile, comandos y temas), el acabado Aero de la Fase 4 y la física directa
+de la Fase 5.
 
 ## Presets de tamaño
 
@@ -147,6 +148,18 @@ viñeta; Aero Classic declara el acabado completo.
 `DayCycle` anima lentamente la dirección solar, la intensidad de luces, el cielo y la niebla entre día
 y atardecer. Ambos sistemas se actualizan en el timestep fijo y se recrean al cambiar el tamaño del
 mundo para mantener su distribución correcta.
+
+## Física e interacción directa (Fase 5)
+
+`PhysicsWorld` carga `@dimforge/rapier3d-compat` solo al activar **Modo: Jugar**, por lo que el WASM
+no retrasa la entrada al constructor. Cada instancia recibe un collider de caja calculado desde su
+huella y altura: `static` crea cuerpo fijo, `dynamic` cuerpo dinámico con amortiguación y `kinematic`
+cuerpo cinemático preparado para futuras entidades controladas.
+
+El modo Jugar desactiva `BuildController` y mantiene la grilla como estado de construcción. Un raycast
+identifica cuerpos dinámicos; el puntero aplica un impulso-resorte hacia el punto de agarre y conserva
+la inercia al soltar. Al regresar a Construir, los cuerpos se liberan y `City.resetPhysicalPoses()`
+recompone las posiciones guardadas, evitando que la simulación corrompa ocupación, comandos o undo.
 
 ## Empaquetado de escritorio
 

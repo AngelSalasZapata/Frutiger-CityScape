@@ -18,6 +18,7 @@ import type { ThemeDefinition } from '@/render/theme'
 import { Hud } from '@/ui/Hud'
 import { disposeObject3D } from '@/utils/dispose'
 import { AeroParticles } from '@/fx/AeroParticles'
+import { PhysicsWorld } from '@/physics/PhysicsWorld'
 import { World } from '@/world/World'
 import {
   DEFAULT_WORLD_PRESET,
@@ -59,6 +60,7 @@ export class App {
   private readonly library = new AssetLibrary()
   private readonly city: City
   private readonly build: BuildController
+  private readonly physics: PhysicsWorld
   private readonly subscriptions: (() => void)[] = []
 
   private world: World
@@ -113,6 +115,12 @@ export class App {
       bus: this.bus,
       theme: this.theme,
     })
+    this.physics = new PhysicsWorld(
+      this.city,
+      this.cameraRig.camera,
+      this.renderer.instance.domElement,
+      this.bus,
+    )
 
     this.subscriptions.push(
       this.bus.on('worldPresetSelected', (event) => {
@@ -123,6 +131,9 @@ export class App {
       }),
       this.bus.on('terrainSelected', (event) => {
         this.selectTerrain(event)
+      }),
+      this.bus.on('playModeSelected', (event) => {
+        void this.selectPlayMode(event.mode)
       }),
     )
 
@@ -164,6 +175,7 @@ export class App {
     document.removeEventListener('visibilitychange', this.handleVisibilityChange)
 
     this.build.dispose()
+    this.physics.dispose()
     this.city.dispose()
     this.library.dispose()
     this.hud.dispose()
@@ -253,6 +265,21 @@ export class App {
     })
   }
 
+  private async selectPlayMode(mode: 'build' | 'play'): Promise<void> {
+    const playing = mode === 'play'
+    this.build.setInteractionEnabled(!playing)
+    try {
+      await this.physics.setActive(playing)
+    } catch (error) {
+      this.build.setInteractionEnabled(true)
+      this.hud.setPlayMode('build')
+      this.bus.emit('notice', {
+        message: `No se pudo iniciar la física: ${(error as Error).message}`,
+        tone: 'error',
+      })
+    }
+  }
+
   private replaceWorld(preset: WorldPreset): void {
     this.scene.remove(this.world.object)
     this.world.dispose()
@@ -323,6 +350,7 @@ export class App {
 
   private fixedUpdate(dt: number): void {
     this.world.update(dt)
+    this.physics.update(dt)
     this.particles.update(dt)
     if (this.scene.fog instanceof THREE.Fog) {
       this.dayCycle.update(dt, this.sky, this.lighting, this.scene.fog)

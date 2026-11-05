@@ -203,6 +203,22 @@ export class City {
     return true
   }
 
+  /** Sincroniza la pose renderizada de un cuerpo dinámico sin tocar la grilla lógica. */
+  setPhysicsPose(id: string, position: THREE.Vector3, rotation: THREE.Quaternion): void {
+    const instance = this.instances.get(id)
+    if (!instance) return
+    instance.object.position.copy(position)
+    instance.object.quaternion.copy(rotation)
+  }
+
+  /** Restaura los objetos físicos a sus posiciones de construcción al volver a editar. */
+  resetPhysicalPoses(): void {
+    for (const instance of this.instances.values()) {
+      instance.object.quaternion.identity()
+      this.positionInstance(instance)
+    }
+  }
+
   insert(record: PlacementRecord): PlacedInstance | null {
     const existing = this.instances.get(record.id)
     if (existing) return existing

@@ -96,6 +96,7 @@ const HUD_TEMPLATE = `
         <p class="hud__build-meta" data-build-meta>0 objetos</p>
       </div>
       <p class="hud__build-hint" data-build-hint>Elegí una herramienta.</p>
+      <button type="button" class="hud__mode" data-mode="build" aria-pressed="true">Modo: Construir</button>
 
       <div class="hud__tools" role="group" aria-label="Herramientas" data-tools></div>
 
@@ -301,6 +302,14 @@ export class Hud {
     this.terrainDensity.removeEventListener('input', this.handleTerrainChange)
     this.terrainProminence.removeEventListener('input', this.handleTerrainChange)
     this.root.remove()
+  }
+
+  setPlayMode(mode: 'build' | 'play'): void {
+    const button = this.root.querySelector<HTMLButtonElement>('[data-mode]')
+    if (!button) return
+    button.dataset.mode = mode
+    button.setAttribute('aria-pressed', String(mode === 'play'))
+    button.textContent = mode === 'play' ? 'Modo: Jugar' : 'Modo: Construir'
   }
 
   private createRoot(container: HTMLElement): HTMLElement {
@@ -547,7 +556,15 @@ export class Hud {
     }
 
     const actionButton = target.closest<HTMLButtonElement>('[data-action]')
-    if (!actionButton) return
+    if (!actionButton) {
+      const modeButton = target.closest<HTMLButtonElement>('[data-mode]')
+      if (!modeButton) return
+      const mode = modeButton.dataset.mode === 'play' ? 'play' : 'build'
+      const next = mode === 'build' ? 'play' : 'build'
+      this.setPlayMode(next)
+      this.bus.emit('playModeSelected', { mode: next })
+      return
+    }
 
     const action = actionButton.dataset.action
     if (

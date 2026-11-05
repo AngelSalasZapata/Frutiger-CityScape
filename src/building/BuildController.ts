@@ -58,6 +58,7 @@ export class BuildController {
   private lastStrokeCell: GridCell | null = null
   private moving: MovingState | null = null
   private activePointerId: number | null = null
+  private interactionEnabled = true
 
   constructor(private readonly options: BuildControllerOptions) {
     this.ghost = new GhostPreview(options.library, options.theme)
@@ -102,6 +103,12 @@ export class BuildController {
 
   get activeItemId(): string | null {
     return this.itemId
+  }
+
+  setInteractionEnabled(enabled: boolean): void {
+    this.interactionEnabled = enabled
+    if (!enabled) this.cancelInteraction()
+    this.refreshGhost()
   }
 
   applyTheme(theme: ThemeDefinition): void {
@@ -304,6 +311,7 @@ export class BuildController {
   }
 
   private readonly handlePointerDown = (event: PointerEvent): void => {
+    if (!this.interactionEnabled) return
     if (event.button !== 0) return
 
     this.updatePointer(event)
@@ -335,6 +343,7 @@ export class BuildController {
   }
 
   private readonly handlePointerMove = (event: PointerEvent): void => {
+    if (!this.interactionEnabled) return
     this.updatePointer(event)
 
     const cell = this.cellFromPointer()
@@ -348,6 +357,7 @@ export class BuildController {
   }
 
   private readonly handlePointerUp = (event: PointerEvent): void => {
+    if (!this.interactionEnabled) return
     if (event.button !== 0 && event.type !== 'pointercancel') return
 
     this.updatePointer(event)
@@ -872,6 +882,7 @@ export class BuildController {
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
+    if (!this.interactionEnabled) return
     if (event.ctrlKey || event.metaKey) {
       const key = event.key.toLowerCase()
 

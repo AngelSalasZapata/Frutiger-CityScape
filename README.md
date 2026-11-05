@@ -5,21 +5,21 @@ del diorama, coloca edificios, props y vehículos con el mouse, interactúa con 
 mini NPCs recorrer la ciudad.
 
 > Estado actual: **Fase 4 — estética Frutiger Aero v1** completada: construcción con mouse,
-> catálogo glTF, acabado Aero, postproceso y partículas. Todavía no hay física ni NPCs
+> catálogo glTF, acabado Aero, postproceso, partículas y física directa. Todavía no hay NPCs
 > (ver [roadmap](#roadmap)).
 
 ## Stack
 
-| Área         | Tecnología                                    |
-| ------------ | --------------------------------------------- |
-| Lenguaje     | TypeScript estricto                           |
-| Build        | Vite                                          |
-| Render 3D    | Three.js (WebGL2) + postprocessing            |
-| Física       | Rapier (`@dimforge/rapier3d-compat`) — Fase 5 |
-| UI           | HTML/CSS superpuesto                          |
-| Escritorio   | Electron + electron-builder                   |
-| Persistencia | IndexedDB (`idb`) + JSON exportable — Fase 8  |
-| Calidad      | ESLint, Prettier, Vitest, GitHub Actions      |
+| Área         | Tecnología                                   |
+| ------------ | -------------------------------------------- |
+| Lenguaje     | TypeScript estricto                          |
+| Build        | Vite                                         |
+| Render 3D    | Three.js (WebGL2) + postprocessing           |
+| Física       | Rapier (`@dimforge/rapier3d-compat`)         |
+| UI           | HTML/CSS superpuesto                         |
+| Escritorio   | Electron + electron-builder                  |
+| Persistencia | IndexedDB (`idb`) + JSON exportable — Fase 8 |
+| Calidad      | ESLint, Prettier, Vitest, GitHub Actions     |
 
 El renderer es web puro, así que también puede correr en el navegador. Electron solo aporta la
 ventana de escritorio y el empaquetado en instaladores. En builds empaquetados los modelos glTF se
@@ -132,9 +132,18 @@ El renderer aplica antialiasing SMAA, SSAO ligero, bloom suave y viñeta ajustad
 Classic incluye burbujas y destellos procedurales, materiales físicos con reflejos de entorno y un
 ciclo visual lento de día/atardecer. No necesita texturas ni modelos adicionales.
 
+## Física e interacción directa
+
+El interruptor **Modo: Construir / Jugar** separa la edición de la simulación. En Jugar, Rapier se
+carga bajo demanda y genera colliders tipo caja: edificios y caminos son estáticos; los props y
+vehículos con perfil `dynamic` responden a gravedad, fricción y colisiones. Arrastrá con clic
+izquierdo un objeto dinámico para tomarlo con un resorte físico; al soltarlo conserva la inercia.
+Al volver a Construir, los objetos recuperan sus posiciones de grilla para editar sin interferencias.
+
 ## Controles actuales
 
 - **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).
+- **Modo Jugar + clic izquierdo sobre prop/vehículo**: agarrar, arrastrar y soltar con física.
 - **Arrastrar con la herramienta Colocar**: dibujar una calle, camino o cerca en serie.
 - **Clic derecho + arrastrar**: rotar la cámara.
 - **Rueda**: zoom.
@@ -185,7 +194,7 @@ tests/                Unitarias y e2e
 - [x] **Fase 2** — Selector de tamaño de ciudad, grilla lógica, chunks y diorama con agua.
 - [x] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas, auto-tile y undo/redo.
 - [x] **Fase 4** — Estética Aero v1: postproceso, partículas y acabado del tema Aero Classic.
-- [ ] **Fase 5** — Física Rapier, agarre y lanzamiento.
+- [x] **Fase 5** — Física Rapier, agarre y lanzamiento.
 - [ ] **Fase 6** — NPCs deambulantes con smart objects.
 - [ ] **Fase 7** — Vehículos y tráfico.
 - [ ] **Fase 8** — Persistencia, temas y catálogo ampliado.

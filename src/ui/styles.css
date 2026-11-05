@@ -455,6 +455,30 @@ body {
   gap: 6px;
 }
 
+.hud__mode {
+  appearance: none;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--aero-accent) 55%, white);
+  border-radius: 999px;
+  background:
+    radial-gradient(farthest-corner at bottom center, rgba(255, 255, 255, 0.75), transparent),
+    linear-gradient(to bottom, var(--aero-accent-strong), var(--aero-accent));
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3);
+  color: var(--aero-button-fg);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  text-shadow: 0 2px 0.5em rgba(0, 0, 0, 0.2);
+}
+
+.hud__mode[aria-pressed='true'] {
+  background: linear-gradient(to bottom, #faad54, #ef6b22);
+  color: #341307;
+}
+
 .hud__tool,
 .hud__category,
 .hud__item,
