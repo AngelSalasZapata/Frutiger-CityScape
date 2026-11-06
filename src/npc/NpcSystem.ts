@@ -2,6 +2,7 @@ import * as THREE from 'three'
 
 import type { City, PlacedInstance } from '@/building/City'
 import type { PhysicsWorld } from '@/physics/PhysicsWorld'
+import type { VehicleSystem } from '@/vehicles/VehicleSystem'
 
 interface NpcState {
   readonly bubble: THREE.Sprite
@@ -12,6 +13,8 @@ interface NpcState {
   hopUntil: number
   phase: number
   symbol: string
+  passengerVehicle: string | null
+  rideUntil: number
 }
 
 const SYMBOLS = ['🙂', '💬', '👋', '😉', '♥', '♫']
@@ -27,6 +30,7 @@ export class NpcSystem {
   constructor(
     private readonly city: City,
     private readonly physics: PhysicsWorld,
+    private readonly vehicles: VehicleSystem,
   ) {
     this.object.name = 'npc-effects'
   }
@@ -80,6 +84,8 @@ export class NpcSystem {
         hopUntil: 0,
         phase: Math.random() * Math.PI * 2,
         symbol: '',
+        passengerVehicle: null,
+        rideUntil: 0,
       })
     }
   }
@@ -92,6 +98,23 @@ export class NpcSystem {
   ): void {
     const position = npc.object.position
     const interaction = this.physics.npcInteraction(npc.id)
+    const passenger = state.passengerVehicle ? this.vehicles.passengerPose(npc.id) : null
+    if (passenger) {
+      this.physics.rideNpc(npc.id, passenger.position, passenger.vehicle.object.quaternion)
+      npc.modelHolder.position.y = 0.08
+      state.bubble.position
+        .copy(passenger.position)
+        .add(new THREE.Vector3(0, npc.item.height + 0.62, 0))
+      const symbol = passenger.vehicle.item.vehicleBehavior === 'air' ? '🎈' : '🛺'
+      if (symbol !== state.symbol) this.setBubbleSymbol(state, symbol)
+      if (this.elapsed >= state.rideUntil) {
+        this.vehicles.leavePassenger(npc.id)
+        state.passengerVehicle = null
+        state.nextDecision = this.elapsed + 2 + Math.random() * 3
+      }
+      return
+    }
+    if (state.passengerVehicle) state.passengerVehicle = null
     const nearStructure = this.city
       .all()
       .some(
@@ -112,6 +135,12 @@ export class NpcSystem {
     npc.modelHolder.position.y = bob
 
     if (!interaction.grabbed && this.elapsed >= state.nextDecision) {
+      const boarded = this.vehicles.boardPassenger(npc.id, position)
+      if (boarded) {
+        state.passengerVehicle = boarded
+        state.rideUntil = this.elapsed + 5 + Math.random() * 8
+        return
+      }
       state.target
         .copy(position)
         .add(this.randomDirection().multiplyScalar(1.2 + Math.random() * 2.2))

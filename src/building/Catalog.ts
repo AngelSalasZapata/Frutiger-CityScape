@@ -8,6 +8,7 @@ import vehiclesJson from '@data/catalog/vehicles.json'
 export type CatalogCategory = 'building' | 'nature' | 'npc' | 'prop' | 'vehicle' | 'path' | 'fence'
 export type CatalogPhysics = 'static' | 'dynamic' | 'kinematic'
 export type PaletteRole = 'primary' | 'secondary' | 'accent' | 'neutral'
+export type VehicleBehavior = 'road' | 'water' | 'air'
 
 export interface CatalogInteraction {
   id: string
@@ -30,6 +31,8 @@ export interface CatalogItem {
   palette: PaletteRole
   description: string
   interactions?: CatalogInteraction[]
+  /** Medio de desplazamiento para los ítems de la categoría vehículo. */
+  vehicleBehavior?: VehicleBehavior
 }
 
 interface CatalogFile {
@@ -68,6 +71,7 @@ export const CATEGORY_LABELS: Readonly<Record<CatalogCategory, string>> = {
 
 const CATALOG_PHYSICS: readonly CatalogPhysics[] = ['static', 'dynamic', 'kinematic']
 const CATALOG_PALETTES: readonly PaletteRole[] = ['primary', 'secondary', 'accent', 'neutral']
+const VEHICLE_BEHAVIORS: readonly VehicleBehavior[] = ['road', 'water', 'air']
 
 export function validateCatalog(items: readonly CatalogItem[]): void {
   const ids = new Set<string>()
@@ -121,6 +125,14 @@ export function validateCatalog(items: readonly CatalogItem[]): void {
 
     if (!Array.isArray(item.themes) || item.themes.length === 0) {
       throw new Error(`El item "${item.id}" no declara temas`)
+    }
+
+    if (item.vehicleBehavior && !VEHICLE_BEHAVIORS.includes(item.vehicleBehavior)) {
+      throw new Error(`Movimiento de vehículo desconocido en "${item.id}"`)
+    }
+
+    if (item.category === 'vehicle' && !item.vehicleBehavior) {
+      throw new Error(`El vehículo "${item.id}" necesita declarar su movimiento`)
     }
   }
 }

@@ -125,9 +125,9 @@ export class App {
       this.renderer.instance.domElement,
       this.bus,
     )
-    this.npcs = new NpcSystem(this.city, this.physics)
-    this.scene.add(this.npcs.object)
     this.vehicles = new VehicleSystem(this.city, this.physics)
+    this.npcs = new NpcSystem(this.city, this.physics, this.vehicles)
+    this.scene.add(this.npcs.object)
 
     this.subscriptions.push(
       this.bus.on('worldPresetSelected', (event) => {

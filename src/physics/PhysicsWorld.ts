@@ -193,6 +193,20 @@ export class PhysicsWorld {
     void dt
   }
 
+  /** Mantiene a un NPC a bordo de un vehículo sin que la gravedad lo separe. */
+  rideNpc(id: string, position: THREE.Vector3, rotation: THREE.Quaternion): void {
+    const entry = this.entries.get(id)
+    if (!entry?.npc) return
+    entry.body.setTranslation(
+      { x: position.x, y: position.y + entry.height / 2, z: position.z },
+      true,
+    )
+    entry.body.setRotation(rotation, true)
+    entry.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    entry.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    this.city.setPhysicsPose(id, position, rotation)
+  }
+
   npcInteraction(id: string): { grabbed: boolean; speed: number } {
     const entry = this.entries.get(id)
     if (!entry?.npc) return { grabbed: false, speed: 0 }

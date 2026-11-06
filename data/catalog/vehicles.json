@@ -8,25 +8,28 @@
       "themes": ["*"],
       "model": "assets/models/vehicles/car_aero.glb",
       "footprint": [2, 1],
-      "height": 1.2,
-      "physics": "dynamic",
-      "palette": "neutral",
-      "description": "Deportivo blanco de líneas redondeadas.",
-      "interactions": [{ "id": "drive", "offset": [0, 0, 0.9], "duration": 4 }]
-    },
-    {
-      "id": "aero_capsule",
-      "name": "Cápsula Aero",
-      "category": "vehicle",
-      "themes": ["*"],
-      "model": "assets/models/vehicles/aero_capsule.glb",
-      "footprint": [2, 1],
-      "height": 1.15,
+      "height": 0.75,
       "scale": 0.72,
       "physics": "dynamic",
       "palette": "neutral",
-      "description": "Vehículo compacto de cápsula, blanco, celeste y verde con vidrio panorámico.",
-      "interactions": [{ "id": "drive", "offset": [0, 0, 0.9], "duration": 4 }]
+      "vehicleBehavior": "road",
+      "description": "Auto compacto de cuatro ruedas para circular por caminos.",
+      "interactions": [{ "id": "board", "offset": [0, 0, 0.7], "duration": 4 }]
+    },
+    {
+      "id": "balloon_aero",
+      "name": "Globo Aero",
+      "category": "vehicle",
+      "themes": ["*"],
+      "model": "assets/models/vehicles/balloon_aero.glb",
+      "footprint": [2, 2],
+      "height": 2.4,
+      "scale": 0.14,
+      "physics": "dynamic",
+      "palette": "accent",
+      "vehicleBehavior": "air",
+      "description": "Globo aerostático que explora el diorama y desciende para recibir visitantes.",
+      "interactions": [{ "id": "board", "offset": [0, 0, 0.8], "duration": 6 }]
     },
     {
       "id": "bus_aero",
@@ -35,11 +38,13 @@
       "themes": ["*"],
       "model": "assets/models/vehicles/bus_aero.glb",
       "footprint": [3, 1],
-      "height": 1.7,
+      "height": 1.25,
+      "scale": 0.0055,
       "physics": "dynamic",
       "palette": "primary",
-      "description": "Autobús urbano de vidrio panorámico.",
-      "interactions": [{ "id": "drive", "offset": [0, 0, 1.3], "duration": 5 }]
+      "vehicleBehavior": "road",
+      "description": "Autobús urbano con ruedas y espacio para varios habitantes.",
+      "interactions": [{ "id": "board", "offset": [0, 0, 1.3], "duration": 5 }]
     },
     {
       "id": "boat_aero",
@@ -48,11 +53,13 @@
       "themes": ["*"],
       "model": "assets/models/vehicles/boat_aero.glb",
       "footprint": [2, 1],
-      "height": 1.1,
+      "height": 0.8,
+      "scale": 0.006,
       "physics": "dynamic",
       "palette": "secondary",
-      "description": "Lancha de madera para el agua del diorama.",
-      "interactions": [{ "id": "drive", "offset": [0, 0, 0.9], "duration": 4 }]
+      "vehicleBehavior": "water",
+      "description": "Lancha a motor que flota y recorre el agua alrededor de la isla.",
+      "interactions": [{ "id": "board", "offset": [0, 0, 0.9], "duration": 4 }]
     }
   ]
 }

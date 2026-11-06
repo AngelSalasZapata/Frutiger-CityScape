@@ -45,12 +45,19 @@ describe('Catálogo', () => {
     expect(npc.scale).toBeLessThan(1)
   })
 
-  it('incluye la cápsula Aero como vehículo dinámico con su GLB', () => {
-    const vehicle = resolveCatalogItem('aero_capsule')
+  it('incluye el globo Aero como vehículo aéreo con su GLB', () => {
+    const vehicle = resolveCatalogItem('balloon_aero')
 
     expect(vehicle.category).toBe('vehicle')
     expect(vehicle.physics).toBe('dynamic')
-    expect(vehicle.model).toBe('assets/models/vehicles/aero_capsule.glb')
+    expect(vehicle.vehicleBehavior).toBe('air')
+    expect(vehicle.model).toBe('assets/models/vehicles/balloon_aero.glb')
+  })
+
+  it('declara un medio de desplazamiento para cada vehículo', () => {
+    const behaviors = allCatalogItems('vehicle').map((vehicle) => vehicle.vehicleBehavior)
+    expect(behaviors).toEqual(expect.arrayContaining(['road', 'water', 'air']))
+    expect(behaviors.every(Boolean)).toBe(true)
   })
 
   it('referencia temas existentes o el comodín global', () => {

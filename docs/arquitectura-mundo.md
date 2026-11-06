@@ -202,19 +202,24 @@ pequeños con el mismo gesto de mouse.
 
 ## Vehículos y tráfico (Fase 7)
 
-`VehicleSystem` se actualiza en el timestep fijo solo durante Modo Jugar. Descubre instancias de la
-categoría `vehicle` y usa las anclas de los items `path` como una red ortogonal. `RoadNetwork` concentra
-la lógica pura de vecinos y de elección del siguiente tramo: evita una vuelta inmediata salvo en un final
-de calle, lo que permite circuitos, cruces y rutas de ida y vuelta sin datos adicionales en el catálogo.
+`VehicleSystem` se actualiza en el timestep fijo solo durante Modo Jugar. Los items de catálogo declaran
+`vehicleBehavior` como `road`, `water` o `air`. Para los dos vehículos viales usa las anclas de `path`
+como una red ortogonal. `RoadNetwork` concentra la lógica pura de vecinos y de elección del siguiente
+tramo: evita una vuelta inmediata salvo en un final de calle, lo que permite circuitos, cruces y rutas de
+ida y vuelta sin datos adicionales en el catálogo.
 
 Los vehículos arrancan desde el camino más próximo, construyen rutas cortas y mantienen distancia con otros
 vehículos. En una celda con tres o cuatro salidas, el orden estable del id decide una cesión básica para
 evitar que todos entren simultáneamente al cruce. `PhysicsWorld.driveVehicle()` sincroniza la pose de Rapier
-y Three.js; un vehículo tomado con el mouse pausa su tráfico. El vehículo seleccionado se controla con
-flechas y vuelve al tráfico al soltarlas.
+y Three.js; un vehículo tomado con el mouse pausa su tráfico. Auto y autobús animan sus nodos de ruedas por
+nombre. La lancha recibe destinos aleatorios en el anillo de agua y un balanceo visual, mientras que el
+globo alterna destinos aéreos de altura limitada con descensos periódicos a altura de abordaje. El vehículo
+vial seleccionado se controla con flechas y vuelve al tráfico al soltarlas.
 
-El catálogo v0.6.0 suma `aero_capsule`, cuyo GLB se distribuye en
-`public/assets/models/vehicles/aero_capsule.glb`.
+`NpcSystem` reserva plazas cuando un habitante se encuentra cerca de un vehículo disponible, sincroniza su
+pose con el pasajero durante un paseo corto y lo libera después. La lancha y el globo solo son abordables
+cuando alcanzan una altura cercana al suelo/agua. El catálogo v0.6.1 reemplaza todos los vehículos por
+`car_aero`, `bus_aero`, `boat_aero` y `balloon_aero` en `public/assets/models/vehicles/`.
 
 ## Empaquetado de escritorio
 

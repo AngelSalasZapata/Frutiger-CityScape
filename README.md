@@ -158,13 +158,20 @@ configurados como dinámicos.
 
 ## Vehículos y tráfico
 
-En **Modo Jugar**, los vehículos colocados cerca de una red de **Camino de piedra** encuentran una ruta
-por sus celdas conectadas, recorren sus tramos y regresan en finales de calle. Mantienen una separación
-simple y, en cruces, los vehículos con id posterior ceden el paso a los que ya se aproximan.
+En **Modo Jugar**, el auto y el autobús encuentran una ruta al azar sobre la red de **Camino de piedra**,
+avanzan en líneas rectas y toman las curvas disponibles a izquierda o derecha. Mantienen una separación
+simple y, en cruces, los vehículos con id posterior ceden el paso a los que ya se aproximan. Sus ruedas
+giran al desplazarse.
 
-El vehículo seleccionado se puede conducir como extra con las **flechas**: arriba/abajo acelera o frena y
-izquierda/derecha gira. Soltar las teclas lo devuelve al tráfico. La sección Vehículos incorpora la
-**Cápsula Aero**, un GLB compacto de carrocería blanca, cristales celestes y detalles verdes.
+La lancha escoge trayectorias aleatorias sobre el agua alrededor de la isla y flota con el oleaje. El globo
+elige recorridos aéreos aleatorios con una altura máxima acotada y aterriza periódicamente para recibir
+habitantes. Los NPCs cercanos pueden abordar auto, bus, lancha o globo y bajan después de un breve paseo;
+el bus dispone de cuatro plazas y los demás de una.
+
+La sección Vehículos incluye cuatro GLB remasterizados y escalados para el diorama: **Auto compacto**,
+**Autobús urbano**, **Lancha a motor** y **Globo Aero**. El vehículo vial seleccionado se puede conducir
+con las **flechas**: arriba/abajo acelera o frena e izquierda/derecha gira. Soltar las teclas lo devuelve
+al tráfico.
 
 ## Controles actuales
 
