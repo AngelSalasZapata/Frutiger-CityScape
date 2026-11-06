@@ -4,9 +4,8 @@ Sandbox 3D de ciudades en miniatura con estética **Frutiger Aero**. El jugador 
 del diorama, coloca edificios, props y vehículos con el mouse, interactúa con física real y observa
 mini NPCs recorrer la ciudad.
 
-> Estado actual: **Fase 4 — estética Frutiger Aero v1** completada: construcción con mouse,
-> catálogo glTF, acabado Aero, postproceso, partículas y física directa. Todavía no hay NPCs
-> (ver [roadmap](#roadmap)).
+> Estado actual: **Fase 7 — vehículos y tráfico** completada: construcción, estética, física,
+> NPCs deambulantes y circulación básica sobre caminos.
 
 ## Stack
 
@@ -108,7 +107,7 @@ objeto a las ranuras del GLB (`glass`, `solid`, `accent`, `roof`, `wood`, `leaf`
   su huella y el HUD permite recolorear sus elementos principales y elegir perfil estático o dinámico.
 
 Los modelos son procedurales y se regeneran con `npm run models` (`tools/model-*.mjs`). El catálogo
-actual tiene 36 items: 14 edificios, 6 elementos de naturaleza, 11 props, 3 vehículos, 1 camino y
+actual tiene 37 items: 14 edificios, 6 elementos de naturaleza, 11 props, 4 vehículos, 1 camino y
 1 cerca.
 
 ## Temas visuales
@@ -157,10 +156,21 @@ Los NPC usan gravedad al ser manipulados: al soltarlos caen y retoman su postura
 recorrido. El agarre físico escala ahora con la masa del cuerpo para mover con fluidez edificios y props
 configurados como dinámicos.
 
+## Vehículos y tráfico
+
+En **Modo Jugar**, los vehículos colocados cerca de una red de **Camino de piedra** encuentran una ruta
+por sus celdas conectadas, recorren sus tramos y regresan en finales de calle. Mantienen una separación
+simple y, en cruces, los vehículos con id posterior ceden el paso a los que ya se aproximan.
+
+El vehículo seleccionado se puede conducir como extra con las **flechas**: arriba/abajo acelera o frena y
+izquierda/derecha gira. Soltar las teclas lo devuelve al tráfico. La sección Vehículos incorpora la
+**Cápsula Aero**, un GLB compacto de carrocería blanca, cristales celestes y detalles verdes.
+
 ## Controles actuales
 
 - **Clic izquierdo**: ejecutar la herramienta activa (seleccionar o construir).
 - **Modo Jugar + clic izquierdo sobre prop/vehículo**: agarrar, arrastrar y soltar con física.
+- **Modo Jugar + flechas, con un vehículo seleccionado**: conducción manual temporal.
 - **Arrastrar con la herramienta Colocar**: dibujar una calle, camino o cerca en serie.
 - **Clic derecho + arrastrar**: rotar la cámara.
 - **Rueda**: zoom.
@@ -213,8 +223,8 @@ tests/                Unitarias y e2e
 - [x] **Fase 3** — Construcción con mouse, catálogo glTF, snap, fantasmas, auto-tile y undo/redo.
 - [x] **Fase 4** — Estética Aero v1: postproceso, partículas y acabado del tema Aero Classic.
 - [x] **Fase 5** — Física Rapier, agarre y lanzamiento.
-- [ ] **Fase 6** — NPCs deambulantes con smart objects.
-- [ ] **Fase 7** — Vehículos y tráfico.
+- [x] **Fase 6** — NPCs deambulantes con smart objects.
+- [x] **Fase 7** — Vehículos y tráfico.
 - [ ] **Fase 8** — Persistencia, temas y catálogo ampliado.
 - [ ] **Fase 9** — Optimización, audio, tutorial y release `v0.1.0`.
 

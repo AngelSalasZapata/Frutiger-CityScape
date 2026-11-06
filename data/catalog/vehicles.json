@@ -15,6 +15,20 @@
       "interactions": [{ "id": "drive", "offset": [0, 0, 0.9], "duration": 4 }]
     },
     {
+      "id": "aero_capsule",
+      "name": "Cápsula Aero",
+      "category": "vehicle",
+      "themes": ["*"],
+      "model": "assets/models/vehicles/aero_capsule.glb",
+      "footprint": [2, 1],
+      "height": 1.15,
+      "scale": 0.72,
+      "physics": "dynamic",
+      "palette": "neutral",
+      "description": "Vehículo compacto de cápsula, blanco, celeste y verde con vidrio panorámico.",
+      "interactions": [{ "id": "drive", "offset": [0, 0, 0.9], "duration": 4 }]
+    },
+    {
       "id": "bus_aero",
       "name": "Autobús Aero",
       "category": "vehicle",

@@ -1,4 +1,4 @@
-# Arquitectura del mundo, construcción, acabado y física (Fases 2–5)
+# Arquitectura del mundo, construcción, acabado, física y simulación (Fases 2–7)
 
 Este documento describe cómo se representa el diorama después de la Fase 2 (selector de tamaño,
 grilla lógica, chunks y agua procedural), cómo se construye sobre él en la Fase 3 (catálogo glTF,
@@ -199,6 +199,22 @@ El modelo NPC recibe `groundOffset` en catálogo para separarlo visualmente del 
 collider. Sus cuerpos Rapier vuelven a usar gravedad, de modo que un lanzamiento ya no lo deja suspendido.
 El impulso de agarre se multiplica por `RigidBody.mass()`, equilibrando la respuesta de objetos grandes y
 pequeños con el mismo gesto de mouse.
+
+## Vehículos y tráfico (Fase 7)
+
+`VehicleSystem` se actualiza en el timestep fijo solo durante Modo Jugar. Descubre instancias de la
+categoría `vehicle` y usa las anclas de los items `path` como una red ortogonal. `RoadNetwork` concentra
+la lógica pura de vecinos y de elección del siguiente tramo: evita una vuelta inmediata salvo en un final
+de calle, lo que permite circuitos, cruces y rutas de ida y vuelta sin datos adicionales en el catálogo.
+
+Los vehículos arrancan desde el camino más próximo, construyen rutas cortas y mantienen distancia con otros
+vehículos. En una celda con tres o cuatro salidas, el orden estable del id decide una cesión básica para
+evitar que todos entren simultáneamente al cruce. `PhysicsWorld.driveVehicle()` sincroniza la pose de Rapier
+y Three.js; un vehículo tomado con el mouse pausa su tráfico. El vehículo seleccionado se controla con
+flechas y vuelve al tráfico al soltarlas.
+
+El catálogo v0.6.0 suma `aero_capsule`, cuyo GLB se distribuye en
+`public/assets/models/vehicles/aero_capsule.glb`.
 
 ## Empaquetado de escritorio
 

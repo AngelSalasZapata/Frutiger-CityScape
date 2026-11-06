@@ -200,6 +200,24 @@ export class PhysicsWorld {
     return { grabbed: this.grab?.id === id, speed: Math.hypot(velocity.x, velocity.y, velocity.z) }
   }
 
+  isGrabbed(id: string): boolean {
+    return this.grab?.id === id
+  }
+
+  /** Mueve un vehículo de tráfico conservando su cuerpo Rapier sincronizado. */
+  driveVehicle(id: string, position: THREE.Vector3, rotation: THREE.Quaternion): void {
+    const entry = this.entries.get(id)
+    if (!entry || this.grab?.id === id) return
+    entry.body.setTranslation(
+      { x: position.x, y: position.y + entry.height / 2, z: position.z },
+      true,
+    )
+    entry.body.setRotation(rotation, true)
+    entry.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    entry.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    this.city.setPhysicsPose(id, position, rotation)
+  }
+
   private updatePointer(event: PointerEvent): void {
     const rect = this.domElement.getBoundingClientRect()
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1

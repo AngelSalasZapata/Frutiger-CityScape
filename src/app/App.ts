@@ -20,6 +20,7 @@ import { disposeObject3D } from '@/utils/dispose'
 import { AeroParticles } from '@/fx/AeroParticles'
 import { PhysicsWorld } from '@/physics/PhysicsWorld'
 import { NpcSystem } from '@/npc/NpcSystem'
+import { VehicleSystem } from '@/vehicles/VehicleSystem'
 import { World } from '@/world/World'
 import {
   DEFAULT_WORLD_PRESET,
@@ -63,6 +64,7 @@ export class App {
   private readonly build: BuildController
   private readonly physics: PhysicsWorld
   private readonly npcs: NpcSystem
+  private readonly vehicles: VehicleSystem
   private readonly subscriptions: (() => void)[] = []
 
   private world: World
@@ -125,6 +127,7 @@ export class App {
     )
     this.npcs = new NpcSystem(this.city, this.physics)
     this.scene.add(this.npcs.object)
+    this.vehicles = new VehicleSystem(this.city, this.physics)
 
     this.subscriptions.push(
       this.bus.on('worldPresetSelected', (event) => {
@@ -181,6 +184,7 @@ export class App {
     this.build.dispose()
     this.physics.dispose()
     this.npcs.dispose()
+    this.vehicles.dispose()
     this.city.dispose()
     this.library.dispose()
     this.hud.dispose()
@@ -276,6 +280,7 @@ export class App {
     try {
       await this.physics.setActive(playing)
       this.npcs.setPlaying(playing)
+      this.vehicles.setPlaying(playing)
     } catch (error) {
       this.build.setInteractionEnabled(true)
       this.hud.setPlayMode('build')
@@ -358,6 +363,7 @@ export class App {
     this.world.update(dt)
     this.physics.update(dt)
     this.npcs.update(dt)
+    this.vehicles.update(dt)
     this.particles.update(dt)
     if (this.scene.fog instanceof THREE.Fog) {
       this.dayCycle.update(dt, this.sky, this.lighting, this.scene.fog)

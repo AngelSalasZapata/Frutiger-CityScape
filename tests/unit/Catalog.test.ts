@@ -45,6 +45,14 @@ describe('Catálogo', () => {
     expect(npc.scale).toBeLessThan(1)
   })
 
+  it('incluye la cápsula Aero como vehículo dinámico con su GLB', () => {
+    const vehicle = resolveCatalogItem('aero_capsule')
+
+    expect(vehicle.category).toBe('vehicle')
+    expect(vehicle.physics).toBe('dynamic')
+    expect(vehicle.model).toBe('assets/models/vehicles/aero_capsule.glb')
+  })
+
   it('referencia temas existentes o el comodín global', () => {
     const themeIds = new Set(THEMES.map((theme) => theme.id))
 

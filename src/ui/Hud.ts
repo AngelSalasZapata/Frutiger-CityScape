@@ -134,6 +134,7 @@ const HUD_TEMPLATE = `
       <span><kbd>Clic izq.</kbd> construir / seleccionar</span>
        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover cámara</span>
        <span><kbd>Clic derecho</kbd> rotar cámara</span>
+       <span><kbd>Flechas</kbd> conducir vehículo seleccionado</span>
       <span><kbd>Rueda</kbd> zoom</span>
       <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tamaño</span>
       <span><kbd>G</kbd> grilla</span>
